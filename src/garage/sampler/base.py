@@ -1,39 +1,35 @@
-"""Base class of Sampler."""
 import abc
 
 
 class Sampler(abc.ABC):
-    """Sampler interface."""
-
     @abc.abstractmethod
     def start_worker(self):
-        """Initialize the sampler.
+        """Initialize the sampler,
 
         e.g. launching parallel workers if necessary.
-
         """
+        pass
 
     @abc.abstractmethod
-    def obtain_samples(self, itr, batch_size, whole_paths):
+    def obtain_samples(self, itr):
         """Collect samples for the given iteration number.
 
         Args:
-            itr (int): Number of iteration.
-            batch_size (int): Number of environment steps in one batch.
-            whole_paths (bool): Whether to use whole path or truncated.
+            itr (int): Iteration number.
 
         Returns:
             list[dict]: A list of paths.
 
         """
+        pass
 
     @abc.abstractmethod
     def shutdown_worker(self):
         """Terminate workers if necessary."""
+        pass
 
 
 class BaseSampler(Sampler):
-    # pylint: disable=abstract-method
     """Base class for sampler.
 
     Args:

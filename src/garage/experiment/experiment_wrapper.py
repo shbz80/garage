@@ -20,6 +20,7 @@ import psutil
 
 from garage.experiment import deterministic, SnapshotConfig
 import garage.plotter
+from garage.sampler import parallel_sampler
 import garage.tf.plotter
 
 
@@ -34,6 +35,7 @@ def run_experiment(argv):
         BaseException: Propagate any exception in the experiment.
 
     """
+    # input("Press Enter to continue...")
     now = datetime.datetime.now(dateutil.tz.tzlocal())
 
     # avoid name clashes when running distributed jobs
@@ -42,6 +44,12 @@ def run_experiment(argv):
 
     default_exp_name = 'experiment_%s_%s' % (timestamp, rand_id)
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--n_parallel',
+        type=int,
+        default=1,
+        help=('Number of parallel workers to perform rollouts. '
+              "0 => don't start any workers"))
     parser.add_argument('--exp_name',
                         type=str,
                         default=default_exp_name,
@@ -118,6 +126,11 @@ def run_experiment(argv):
     if args.seed is not None:
         deterministic.set_seed(args.seed)
 
+    if args.n_parallel > 0:
+        parallel_sampler.initialize(n_parallel=args.n_parallel)
+        if args.seed is not None:
+            parallel_sampler.set_seed(args.seed)
+
     if not args.plot:
         garage.plotter.Plotter.disable()
         garage.tf.plotter.Plotter.disable()
@@ -159,6 +172,8 @@ def run_experiment(argv):
     except BaseException:
         children = garage.plotter.Plotter.get_plotters()
         children += garage.tf.plotter.Plotter.get_plotters()
+        if args.n_parallel > 0:
+            children += [parallel_sampler]
         child_proc_shutdown(children)
         raise
 

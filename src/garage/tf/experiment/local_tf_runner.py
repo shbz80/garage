@@ -1,4 +1,5 @@
-"""The local runner for TensorFlow algorithms.
+"""
+The local runner for TensorFlow algorithms.
 
 A runner setup context for algorithms during initialization and
 pipelines data between sampler and algorithm during training.
@@ -81,7 +82,7 @@ class LocalTFRunner(LocalRunner):
         """Set self.sess as the default session.
 
         Returns:
-            LocalTFRunner: This local runner.
+            This local runner.
 
         """
         if tf.compat.v1.get_default_session() is not self.sess:
@@ -90,14 +91,7 @@ class LocalTFRunner(LocalRunner):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Leave session.
-
-        Args:
-            exc_type (str): Type.
-            exc_val (object): Value.
-            exc_tb (object): Traceback.
-
-        """
+        """Leave session."""
         if tf.compat.v1.get_default_session(
         ) is self.sess and self.sess_entered:
             self.sess.__exit__(exc_type, exc_val, exc_tb)
@@ -124,6 +118,17 @@ class LocalTFRunner(LocalRunner):
         self.initialize_tf_vars()
         logger.log(self.sess.graph)
         super().setup(algo, env, sampler_cls, sampler_args)
+
+    def _start_worker(self):
+        """Start Plotter and Sampler workers."""
+        self._sampler.start_worker()
+        if self._plot:
+            # TODO
+            # pylint: disable=import-outside-toplevel
+            from garage.tf.plotter import Plotter
+            self._plotter = Plotter(self._env, self._policy)
+            self._plotter.start()
+
 
     def initialize_tf_vars(self):
         """Initialize all uninitialized variables in session."""

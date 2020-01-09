@@ -1,4 +1,6 @@
 """Base class for policies based on numpy."""
+"modified by Shahbaz to make it more like the tf policy class"
+"modifications will be indicated by the tag 'MOD'"
 import abc
 
 
@@ -25,6 +27,17 @@ class Policy(abc.ABC):
 
         """
 
+    @abc.abstractmethod
+    def get_actions(self, observations): # 'MOD'
+        """Get action sampled from the policy.
+
+        Args:
+            observations (list[np.ndarray]): Observations from the environment.
+        Returns:
+            (np.ndarray): Actions sampled from the policy.
+
+        """
+
     def reset(self, dones=None):
         """Reset the policy.
 
@@ -46,6 +59,11 @@ class Policy(abc.ABC):
     def action_space(self):
         """akro.Space: The action space for the environment."""
         return self._env_spec.action_space
+
+    @property
+    def env_spec(self): #'MOD'
+        """garage.EnvSpec: Policy environment specification."""
+        return self._env_spec
 
     @property
     def recurrent(self):
@@ -79,6 +97,26 @@ class Policy(abc.ABC):
     def terminate(self):
         """Clean up operation."""
 
+    def get_param_values(self, **tags): #'MOD'
+        """Get param values.
+
+        Args:
+            tags (dict): A map of parameters for which the values are required.
+        Returns:
+            param_values (np.ndarray): Values of the parameters evaluated in
+            the current session
+
+        """
+        return None
+
+    def set_param_values(self, param_values, name=None, **tags): #'MOD'
+        """Set param values.
+
+        Args:
+            param_values (np.ndarray): A numpy array of parameter values.
+            tags (dict): A map of parameters for which the values should be
+            loaded.
+        """
 
 class StochasticPolicy(Policy):
     """Base class for stochastic policies implemented in numpy."""

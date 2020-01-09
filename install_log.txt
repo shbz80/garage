@@ -1,0 +1,11 @@
+The command:
+./scripts/setup_linux.sh --mjkey path-to-your-mjkey.txt --modify-bashrc
+will not work if apt-get update command returns with error, so comment it out
+
+sudo apt-get install python3.6-dev for missing header files
+
+install mujoco-py separately with python3.6 pip install mujoco-py==2.0.2.9 --no-use-pep517
+
+use python3.6 -m  pip install -e .[all,dev]
+
+always check if the virtual env is activated (in Pycharm)

@@ -51,10 +51,11 @@ def run_task(snapshot_config, variant_data, *_):
                     max_path_length=100,
                     discount=0.99,
                     max_kl_step=0.01,
-                    flatten_input=False)
+                    flatten_input=False,
+                    )
 
         runner.setup(algo, env)
-        runner.train(n_epochs=100, batch_size=variant_data['batch_size'])
+        runner.train(n_epochs=100, batch_size=variant_data['batch_size'], plot=True)
 
 
 @click.command()
@@ -78,4 +79,5 @@ run_experiment(
     snapshot_mode='last',
     seed=1,
     variant={'batch_size': batch_size},
+    plot=True
 )

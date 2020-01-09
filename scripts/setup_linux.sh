@@ -123,7 +123,7 @@ BASH_RC="${HOME}/.bashrc"
 # Required for OpenAI baselines: libopenmpi-dev, openmpi-bin
 echo "Installing garage dependencies"
 echo "You will probably be asked for your sudo password"
-sudo apt -y -q update
+# sudo apt -y -q update
 sudo apt install -y \
   wget \
   bzip2 \

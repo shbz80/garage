@@ -108,6 +108,7 @@ class Snapshotter:
             with open(file_name, 'wb') as file:
                 pickle.dump(params, file)
 
+
     def load(self, load_dir, itr='last'):
         # pylint: disable=no-self-use
         """Load one snapshot of parameters from disk.

@@ -2,4 +2,5 @@
 from garage.np.policies.base import Policy
 from garage.np.policies.base import StochasticPolicy
 from garage.np.policies.scripted_policy import ScriptedPolicy
-__all__ = ['Policy', 'StochasticPolicy', 'ScriptedPolicy']
+from garage.np.policies.stable_spring_damper import StableSpringDamperPolicy
+__all__ = ['Policy', 'StochasticPolicy', 'ScriptedPolicy', 'StableSpringDamperPolicy']

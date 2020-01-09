@@ -255,14 +255,18 @@ class CategoricalMLPRegressor(StochasticRegressor):
 
         return self._dist.log_likelihood_sym(y_var, dict(prob=prob))
 
-    def get_params_internal(self):
+    def get_params_internal(self, **args):
         """Get the params, which are the trainable variables.
+
+        Args:
+            args: Ignored by the function. Will be removed in future release.
 
         Returns:
             List[tf.Variable]: A list of trainable variables in the current
             variable scope.
 
         """
+        del args
         return self._variable_scope.trainable_variables()
 
     def __getstate__(self):

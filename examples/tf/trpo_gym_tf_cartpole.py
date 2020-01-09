@@ -31,11 +31,12 @@ def run_task(snapshot_config, *_):
         )
 
         runner.setup(algo, env)
-        runner.train(n_epochs=120, batch_size=4000)
+        runner.train(n_epochs=120, batch_size=4000, plot=True)
 
 
 run_experiment(
     run_task,
     snapshot_mode='last',
     seed=1,
+    plot=True,
 )

@@ -4,6 +4,7 @@ import collections
 
 from dowel import tabular
 import numpy as np
+import pickle
 
 from garage.misc import tensor_utils
 from garage.np.algos.base import RLAlgorithm
@@ -65,16 +66,26 @@ class BatchPolopt(RLAlgorithm):
             float: The average return in last epoch cycle.
 
         """
+
+        # log_file_path = "/home/shahbaz/Software/garage/examples/np/data/local/exp/cmaes_block_2d/exp_log.pkl"
+        log_file_path = runner._snapshotter.snapshot_dir + '/exp_log.pkl'
+        # log_file_path = "/home/shahbaz/Software/garage/examples/np/data/local/exp/cem_block_2d/exp_log.pkl"
         last_return = None
 
+        exp_log = []       # for CEM
         for _ in runner.step_epochs():
+            epoc_samples = []
             for _ in range(self.n_samples):
                 runner.step_path = runner.obtain_samples(runner.step_itr)
+                # assuming deterministic policy we keep only one path
+                epoc_samples.append(runner.step_path[0])
                 tabular.record('TotalEnvSteps', runner.total_env_steps)
                 last_return = self.train_once(runner.step_itr,
                                               runner.step_path)
                 runner.step_itr += 1
-
+            exp_log.append(epoc_samples)
+        with open(log_file_path, 'wb') as log_file:
+            pickle.dump(exp_log, log_file)
         return last_return
 
     def process_samples(self, itr, paths):
@@ -89,6 +100,7 @@ class BatchPolopt(RLAlgorithm):
                 * average_return: (float)
 
         """
+        # print(len(paths))
         baselines = []
         returns = []
 
@@ -126,8 +138,9 @@ class BatchPolopt(RLAlgorithm):
         undiscounted_returns = [sum(path['rewards']) for path in paths]
         self.episode_reward_mean.extend(undiscounted_returns)
 
-        ent = np.sum(self.policy.distribution.entropy(agent_infos) *
-                     valids) / np.sum(valids)
+        # TODO
+        # ent = np.sum(self.policy.distribution.entropy(agent_infos) *
+        #              valids) / np.sum(valids)
 
         samples_data = dict(average_return=np.mean(undiscounted_returns))
 
@@ -137,8 +150,8 @@ class BatchPolopt(RLAlgorithm):
         tabular.record('Extras/EpisodeRewardMean',
                        np.mean(self.episode_reward_mean))
         tabular.record('NumTrajs', len(paths))
-        tabular.record('Entropy', ent)
-        tabular.record('Perplexity', np.exp(ent))
+        # tabular.record('Entropy', ent)
+        # tabular.record('Perplexity', np.exp(ent))
         tabular.record('StdReturn', np.std(undiscounted_returns))
         tabular.record('MaxReturn', np.max(undiscounted_returns))
         tabular.record('MinReturn', np.min(undiscounted_returns))

@@ -5,8 +5,8 @@ from garage.experiment.experiment import variant
 from garage.experiment.experiment import VariantGenerator
 from garage.experiment.local_runner import LocalRunner
 from garage.experiment.snapshotter import SnapshotConfig, Snapshotter
-
+from garage.experiment.nb_utils import ExperimentDatabase
 __all__ = [
     'run_experiment', 'to_local_command', 'variant', 'VariantGenerator',
-    'LocalRunner', 'Snapshotter', 'SnapshotConfig'
+    'LocalRunner', 'Snapshotter', 'SnapshotConfig', 'ExperimentDatabase'
 ]

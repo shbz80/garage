@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """An example to train a task with TRPO algorithm."""
-import gym
+import os
 
+import gym
 from garage.experiment import run_experiment
 from garage.np.baselines import LinearFeatureBaseline
 from garage.tf.algos import TRPO
@@ -27,11 +28,12 @@ def run_task(snapshot_config, *_):
                     max_kl_step=0.01)
 
         runner.setup(algo, env)
-        runner.train(n_epochs=40, batch_size=4000)
+        runner.train(n_epochs=40, batch_size=4000, plot=True)
 
 
 run_experiment(
     run_task,
     snapshot_mode='last',
     seed=1,
+    plot=True
 )
