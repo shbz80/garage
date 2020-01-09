@@ -100,8 +100,6 @@ class MOD_CEM_SSD(BatchPolopt):
         v1l = self.cur_stat['l_dof']
         KH = self.KH
         beta = self.get_beta()
-        print('beta:', beta)
-
         KH_l = KH*beta['betaSk']/beta['betalk']
 
         v2S0 = v1S0*np.exp(-beta['betaS0']*KH*reward)
@@ -227,7 +225,8 @@ class MOD_CEM_SSD(BatchPolopt):
             weights = weights_unnorm / np.sum(weights_unnorm)
         assert(np.sum(weights)-1 < 1e-6)
 
-        avg_rtns = np.average(all_rtns, weights=weights)
+        avg_rtns = np.average(all_rtns)
+        avg_best_rtns = np.average(all_rtns, weights=weights)
 
         assert(isinstance(all_params, list))
         all_mu = np.zeros((M,K*ds))
@@ -244,7 +243,7 @@ class MOD_CEM_SSD(BatchPolopt):
             all_Dk[i] = np.array([all_params[i][1]['comp'][j]['D'] for j in range(K)])
             all_lk[i] = all_params[i][2]
 
-        v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_rtns)
+        v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_rtns-avg_best_rtns)
 
         print(v2S0, v2D0, v2S, v2D, v2l)
 
