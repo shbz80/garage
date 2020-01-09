@@ -54,7 +54,7 @@ def run_task(snapshot_config, *_):
                    init_pd_gain=1.,
                    elite=True,
                    temperature = .1,
-                   entropy_const=1e1,
+                   entropy_const=2e-1,
                    entropy_step_v=100,
                            )
         # ***important change T in block2D.py (reward def) equal to max_path_length***
@@ -70,7 +70,7 @@ run_experiment(
     snapshot_mode='last',
     # seed=1,
     plot=True,
-    exp_name='mod_cem_block_2d_basic_elite',
+    exp_name='mod_cem_block_1e-1KH',
     exp_prefix='exp',
     log_dir=None,
 )

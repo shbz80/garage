@@ -100,12 +100,15 @@ class MOD_CEM_SSD(BatchPolopt):
         v1l = self.cur_stat['l_dof']
         KH = self.KH
         beta = self.get_beta()
+        print('beta:', beta)
 
-        v2S0 = v1S0*np.exp(-beta['betaS0']*KH/reward)
-        v2D0 = v1D0*np.exp(-beta['betaD0']*KH/reward)
-        v2S = v1S*np.exp(-beta['betaSk']*KH/reward)
-        v2D = v1D*np.exp(-beta['betaDk']*KH/reward)
-        v2l = v1l*np.exp(-beta['betalk']*KH*0.4/reward)
+        KH_l = KH*beta['betaSk']/beta['betalk']
+
+        v2S0 = v1S0*np.exp(-beta['betaS0']*KH*reward)
+        v2D0 = v1D0*np.exp(-beta['betaD0']*KH*reward)
+        v2S = v1S*np.exp(-beta['betaSk']*KH*reward)
+        v2D = v1D*np.exp(-beta['betaDk']*KH*reward)
+        v2l = v1l*np.exp(-beta['betalk']*KH_l*reward)
 
         return v2S0, v2D0, v2S, v2D, v2l
 
