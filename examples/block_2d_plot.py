@@ -5,7 +5,8 @@ from gym.envs.mujoco.block2D import GOAL
 # from glob import glob
 base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/exp'
 # exp_name ='cem_block_2d'
-exp_name ='mod_cem_block_2d_basic_elite'
+# exp_name ='mod_cem_block_2d_basic_elite'
+exp_name ='test'
 # exp_name ='cmaes_block_2d'
 filename = base_np_filename + '/' + exp_name + '/' + 'exp_log.pkl'
 infile = open(filename, 'rb')
@@ -48,16 +49,11 @@ for ep in range(epoch_num):
             cum_rwd_s_epoch = cum_rwd_s_epoch + np.sum(rs.reshape(-1))
             ra = sample['env_infos']['reward_ctrl'].reshape(T, 1)
             cum_rwd_a_epoch = cum_rwd_a_epoch + np.sum(ra.reshape(-1))
-            # rt = sample['env_infos']['reward_term'][-1]
-            # cum_rwd_a_epoch = cum_rwd_a_epoch + rt
             pos = np.concatenate((pos,p), axis=1)
             vel = np.concatenate((vel, v), axis=1)
             act = np.concatenate((act, a), axis=1)
             rwd_s = np.concatenate((rwd_s, rs), axis=1)
             rwd_a = np.concatenate((rwd_a, ra), axis=1)
-        # cum_rwds_epoch = [cum_rwd_s_epoch, cum_rwd_a_epoch, cum_rwd_t_epoch]
-        # plt.figure()
-        # plt.plot(cum_rwds_epoch)
 
         fig = plt.figure()
         plt.title('Epoch '+str(ep))
@@ -89,37 +85,24 @@ for ep in range(epoch_num):
 
 rewards_disc_rtn = np.zeros(epoch_num)
 rewards_undisc_rwd = np.zeros(epoch_num)
-# goal_dist = np.zeros((epoch_num, sample_num))
 success_mat = np.zeros((epoch_num, sample_num))
 for ep in range(epoch_num):
     epoch = exp_log[ep]
     rewards_disc_rtn[ep] = np.mean([epoch[s]['returns'][0] for s in range(sample_num)])
     rewards_undisc_rwd[ep] = np.mean([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
-    # goal_dist[ep] = np.array([np.min(np.linalg.norm(epoch[s]['observations'][:,:2]-GOAL, axis=1)) for s in range(sample_num)])
     for s in range(sample_num):
         x_s = np.abs(epoch[s]['observations'][:, 0] - GOAL[0])<SUCCESS_DIST_VEC[0]
         y_s = np.abs(epoch[s]['observations'][:, 1] - GOAL[1]) < SUCCESS_DIST_VEC[1]
         xy_s = np.concatenate((x_s.reshape(-1,1), y_s.reshape(-1,1)), axis=1)
         success_mat[ep, s] = np.any(np.any(xy_s, axis=1))
 
-# success_arg = goal_dist < SUCCESS_DIST
-
-# success_mat[success_arg] = 1.
 success_stat = np.sum(success_mat, axis=1)*(100/sample_num)
-
-# fig = plt.figure()
-# plt.plot(goal_dist)
-# plt.plot(np.mean(goal_dist, axis=1), lw=3)
-# plt.show()
 
 fig = plt.figure()
 plt.axis('off')
 ax = fig.add_subplot(1, 2, 1)
 ax.set_title('Progress')
 ax.set_xlabel('Epoch')
-# ax.plot(tm, pos[:, :, 0], color='g')
-# plt.xlabel('Epoch')
-# plt.plot(rewards_disc_rtn, label='disc. return')
 ax.plot(rewards_undisc_rwd, label='undisc. reward')
 ax.legend()
 ax = fig.add_subplot(1, 2, 2)
