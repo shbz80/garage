@@ -70,7 +70,10 @@ run_experiment(
     snapshot_mode='last',
     # seed=1,
     plot=True,
-    exp_name='mod_cem_block_1e-1KH',
+    # exp_name='mod_cem_block_KH_10e-2_10',
+    # exp_name='10',
+    exp_name='test',
+    # exp_prefix='mod_cem_block_KH_20e-2_ns_20',
     exp_prefix='exp',
     log_dir=None,
 )
