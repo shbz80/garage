@@ -9,3 +9,24 @@ install mujoco-py separately with python3.6 pip install mujoco-py==2.0.2.9 --no-
 use python3.6 -m  pip install -e .[all,dev]
 
 always check if the virtual env is activated (in Pycharm)
+
+
+Python3.5
+Moved to Python3.5 because was unable to compile PyKDl for Python3.6.
+
+uninstalling sip from global 5.1.0. This caused the ccmake command that builds PyKDL
+for Pythin3.5 to fail, but we already have the so file.
+
+While compiling PyKDL according to https://github.com/orocos/orocos_kinematics_dynamics/issues/115, it was linking to
+sip in /usr/lib/python3/dist-packages. This is the sip that should be imported by Python3.5 while importing PyKDL.
+
+find_package(SIP) was not able to find Python3.6 sip, only the sip in /usr/lib/python3/dist-packages
+
+Importing PyKDL compiled for Python3.5 in Python3.6 gives segmentation fault
+
+Log for PyKDL compilation:
+1. -DPYTHON_VERSION=3.5
+2. disables the ROS related source command in bashrc file. Not sure if this is required.
+3. Commented out the automatic Python discovery in CMakeLists file and directly specified as Python3.5
+4. Commenetd out find_package(catking QUIET)
+5. in ccmake gui make sure it is pointing to the dowloaded kdl lib source files and not the ros files.
