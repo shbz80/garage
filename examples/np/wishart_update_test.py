@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 # from utils import plot_ellipse
 from scipy.stats import wishart
 
-dofs = np.logspace(2, 10., num=10, base=np.exp(1), dtype=np.uint64)
 num_trials = 20
 
 
 for i in range(num_trials):
     # D = 7
     D = np.random.randint(2, 7)
+    dofs = np.logspace(D+2, 16., num=10, base=np.exp(1), dtype=np.uint64)
+
     S_g_w = 10*np.eye(D)
     # S_g = S_g_w
     S_g = wishart.rvs(D+2, S_g_w)
