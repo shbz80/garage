@@ -2,7 +2,7 @@
 """
 New modified Cross Entropy Method for PD matrices
 
-Here it runs Block2D-v1 environment with 100 epoches.
+Here it runs YumiPeg-v1 environment with 100 epoches.
 
 Results:
 
@@ -15,9 +15,9 @@ from garage.sampler import BatchSampler
 from garage.envs import GarageEnv
 from garage.experiment import LocalRunner
 from garage.np.policies import StableSpringDamperPolicy
-# from gym.envs.mujoco.yumipeg import GOAL
+from gym.envs.mujoco.yumipeg import GOAL
 
-GOAL = np.array([-1.63688, -1.22777, 1.28612, 0.446995, 2.21936, 1.57011, 0.47748])
+# GOAL = np.array([-1.63688, -1.22777, 1.28612, 0.446995, 2.21936, 1.57011, 0.47748])
 def run_task(snapshot_config, *_):
     """Train CEM with Block2D-v1 environment."""
     with LocalRunner(snapshot_config=snapshot_config) as runner:
@@ -26,7 +26,8 @@ def run_task(snapshot_config, *_):
         policy = StableSpringDamperPolicy(
                                       env.spec,
                                       GOAL,
-                                        K=7,
+                                        K=4,
+
                                         )
 
         baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -53,7 +54,7 @@ def run_task(snapshot_config, *_):
                    init_pd_gain=1,
                    elite=True,
                    temperature = .1,
-                   entropy_const=5.e-1,
+                   entropy_const=2.e-1,
                    entropy_step_v=100,
                            )
         # ***important change T in block2D.py (reward def) equal to max_path_length***
@@ -61,7 +62,7 @@ def run_task(snapshot_config, *_):
         # NOTE: make sure that n_epoch_cycles == n_samples !
         # TODO: it is not clear why the above is required
         # runner.train(n_epochs=100, batch_size=1000, n_epoch_cycles=n_samples, plot=True, store_paths=True)
-        runner.train(n_epochs=50, batch_size=100, n_epoch_cycles=n_samples, plot=True, store_paths=False)
+        runner.train(n_epochs=100, batch_size=100, n_epoch_cycles=n_samples, plot=True, store_paths=False)
 
 # IMPORTANT: change the log directory in batch_polopt.py
 run_experiment(
