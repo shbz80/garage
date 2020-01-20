@@ -28,7 +28,7 @@ class MOD_CEM_SSD(BatchPolopt):
                  elite=True,
                  temperature=0.1,
                  entropy_const = 0.1,
-                 entropy_step_v = 100):
+                 entropy_step_v = 100,):
         assert(isinstance(policy, StableSpringDamperPolicy))
         super().__init__(policy, baseline, discount, max_path_length,
                          n_samples)
