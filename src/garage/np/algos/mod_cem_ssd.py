@@ -35,11 +35,11 @@ class MOD_CEM_SSD(BatchPolopt):
         self.env_spec = env_spec
         self.n_samples = n_samples
         self.best_frac = best_frac
-        self.init_mu_cov = init_cov * np.eye(policy.K * policy.ds)
+        self.init_mu_cov = init_cov * np.eye(policy.K * policy.dS)
         self.init_pd_gain = init_pd_gain
-        self.init_pd_dof = policy.ds + 2.
+        self.init_pd_dof = policy.dS + 2.
         self.init_l_dof = 3.         # D=1
-        # self.init_pd_dof = policy.ds
+        # self.init_pd_dof = policy.dS
         # self.init_l_dof = 1         # D=1
         self.best_frac = best_frac
         self.extra_std = extra_std
@@ -113,7 +113,7 @@ class MOD_CEM_SSD(BatchPolopt):
 
     def _sample_params(self):
         K = self.policy.K
-        ds = self.policy.ds
+        dS = self.policy.dS
         cur_mu_mean = self.cur_stat['mu_mean']
         cur_mu_cov = self.cur_stat['mu_cov']
         cur_pd_scale = self.cur_stat['pd_scale']
@@ -203,7 +203,7 @@ class MOD_CEM_SSD(BatchPolopt):
 
     def update_stat(self):
         K = self.policy.K
-        ds = self.policy.ds
+        dS = self.policy.dS
         lmda = self.temperature
 
         all_rtns = np.array(self.all_returns)
@@ -229,11 +229,11 @@ class MOD_CEM_SSD(BatchPolopt):
         avg_best_rtns = np.average(all_rtns, weights=weights)
 
         assert(isinstance(all_params, list))
-        all_mu = np.zeros((M,K*ds))
-        all_S0 = np.zeros((M,ds,ds))
-        all_D0 = np.zeros((M, ds, ds))
-        all_Sk = np.zeros((M, K, ds, ds))
-        all_Dk = np.zeros((M, K, ds, ds))
+        all_mu = np.zeros((M,K*dS))
+        all_S0 = np.zeros((M,dS,dS))
+        all_D0 = np.zeros((M, dS, dS))
+        all_Sk = np.zeros((M, K, dS, dS))
+        all_Dk = np.zeros((M, K, dS, dS))
         all_lk = np.zeros((M,K))
         for i in range(M):
             all_mu[i] = all_params[i][0]
@@ -280,7 +280,7 @@ class MOD_CEM_SSD(BatchPolopt):
             The average return in last epoch cycle.
 
         """
-        ds = self.policy.ds
+        dS = self.policy.dS
         K = self.policy.K
         a = self.init_pd_gain
         # epoch-wise
@@ -288,12 +288,12 @@ class MOD_CEM_SSD(BatchPolopt):
         init_params['base'] = []
         init_params['comp'] = []
         init_params['base'].append({})
-        init_params['base'][0]['S'] = a*np.eye(ds)
-        init_params['base'][0]['D'] = a*np.eye(ds)
+        init_params['base'][0]['S'] = a*np.eye(dS)
+        init_params['base'][0]['D'] = a*np.eye(dS)
         for k in range(K):
             init_params['comp'].append({})
-            init_params['comp'][k]['S'] = a*np.eye(ds)
-            init_params['comp'][k]['D'] = a*np.eye(ds)
+            init_params['comp'][k]['S'] = a*np.eye(dS)
+            init_params['comp'][k]['D'] = a*np.eye(dS)
             init_params['comp'][k]['l'] = 1
             init_params['comp'][k]['mu'] = self.policy.goal
 
