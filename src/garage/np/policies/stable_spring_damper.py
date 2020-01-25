@@ -15,8 +15,8 @@ class StableSpringDamperPolicy(Policy):
         self.action_dim = env_spec.action_space.flat_dim
         assert(self.obs_dim/2 == self.action_dim)
         self.K = K
-        self.ds = self.obs_dim//2
-        assert(goal.shape==(self.ds,))
+        self.dS = self.obs_dim//2
+        assert(goal.shape==(self.dS,))
         self.goal = goal
 
         self.params = {}
@@ -32,19 +32,19 @@ class StableSpringDamperPolicy(Policy):
     def get_action(self, observation):
         """Get action from the policy."""
         assert(self.initialized==True)
-        ds = self.ds
+        dS = self.dS
         K = self.K
-        assert (observation.shape == (ds * 2,))
-        s = observation[:ds]-self.goal
-        s_dot = observation[ds:]
+        assert (observation.shape == (dS * 2,))
+        s = observation[:dS]-self.goal
+        s_dot = observation[dS:]
 
         base_params = self.params['base']
         component_params = self.params['comp']
         S0 = base_params[0]['S']
         D0 = base_params[0]['D']
 
-        trq_S_comp = np.zeros(ds)
-        trq_D_comp = np.zeros(ds)
+        trq_S_comp = np.zeros(dS)
+        trq_D_comp = np.zeros(dS)
         for k in range(K):
             Sk = component_params[k]['S']
             Dk = component_params[k]['D']
@@ -62,19 +62,19 @@ class StableSpringDamperPolicy(Policy):
         trq_D_base = D0.dot(s_dot)
 
         action_trq = -trq_S_base-trq_D_base-trq_S_comp-trq_D_comp
-        assert(action_trq.shape==(ds,))
+        assert(action_trq.shape==(dS,))
         return action_trq, dict(mean=action_trq, log_std=0)
 
     def get_actions(self, observations):
         """Get actions from the policy."""
         assert(isinstance(observations, list))
         N = len(observations)
-        actions = np.zeros((N, self.ds))
-        # actions_info = np.zeros((N, self.ds))
+        actions = np.zeros((N, self.dS))
+        # actions_info = np.zeros((N, self.dS))
         for n in range(N):
             observation = observations[n]
             actions[n] = self.get_action(observation)
-        return actions, dict(mean=actions, log_std=np.zeros((N,self.ds)))
+        return actions, dict(mean=actions, log_std=np.zeros((N,self.dS)))
 
     def get_param_values(self):
         """Get the trainable variables."""
@@ -85,13 +85,13 @@ class StableSpringDamperPolicy(Policy):
     def set_param_values(self, params):
         """Get the trainable variables."""
         K = self.K
-        ds = self.ds
+        dS = self.dS
         b_params = params['base']
         assert(isinstance(b_params, list))
         assert(len(b_params)==1)
         S0 = b_params[0]['S']
         D0 = b_params[0]['D']
-        assert (S0.shape == D0.shape == (ds, ds))
+        assert (S0.shape == D0.shape == (dS, dS))
         assert (np.all(np.linalg.eigvals(S0) > 0))
         assert (np.all(np.linalg.eigvals(D0) > 0))
         self.params['base'] = b_params.copy()
@@ -104,10 +104,10 @@ class StableSpringDamperPolicy(Policy):
             Dk = c_params[k]['D']
             muk = c_params[k]['mu']
             lk = c_params[k]['l']
-            assert(Sk.shape == Dk.shape == (ds,ds))
+            assert(Sk.shape == Dk.shape == (dS,dS))
             assert(np.all(np.linalg.eigvals(Sk) > 0))
             assert (np.all(np.linalg.eigvals(Dk) > 0))
-            assert(muk.shape == (ds,))
+            assert(muk.shape == (dS,))
             assert(lk>0)
         self.params['comp'] = c_params.copy()
         self.initialized = True
