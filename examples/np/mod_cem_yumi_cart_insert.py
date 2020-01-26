@@ -26,23 +26,24 @@ def run_task(snapshot_config, *_):
         # K=7 components
         kin_params_yumi = {}
         kin_params_yumi['urdf'] = '/home/shahbaz/Software/mjc_models/yumi_ABB_left.urdf'
-        kin_params_yumi['base_link'] = 'yumi_base_link'
+        kin_params_yumi['base_link'] = 'world'
         # kin_params_yumi['end_link'] = 'gripper_l_base'
         kin_params_yumi['end_link'] = 'left_contact_point'
         kin_params_yumi['euler_string'] = 'sxyz'
+        kin_params_yumi['goal'] = GOAL
 
         policy = StableCartSpringDamperPolicy(
             env.spec,
             GOAL,
             kin_params_yumi,
-            K=4,
+            K=2,
 
         )
 
         baseline = LinearFeatureBaseline(env_spec=env.spec)
 
         # n_samples = 20
-        n_samples = 20  # number of samples in an epoch in CEM
+        n_samples = 10  # number of samples in an epoch in CEM
 
         # itr is the number of RL iterations consisting of a number of rollouts
         # for CEM when we use deterministic policy then we need only one RL rollout,
