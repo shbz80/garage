@@ -73,7 +73,8 @@ class StableSpringDamperPolicy(Policy):
         # actions_info = np.zeros((N, self.dS))
         for n in range(N):
             observation = observations[n]
-            actions[n] = self.get_action(observation)
+            action, _ = self.get_action(observation)
+            actions[n] = action
         return actions, dict(mean=actions, log_std=np.zeros((N,self.dS)))
 
     def get_param_values(self):
