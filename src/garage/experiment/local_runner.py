@@ -3,6 +3,7 @@ import copy
 import os
 import time
 import pickle
+import copy
 
 from dowel import logger, tabular
 

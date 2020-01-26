@@ -26,7 +26,7 @@ def run_task(snapshot_config, *_):
         policy = StableSpringDamperPolicy(
                                       env.spec,
                                       GOAL,
-                                        K=4,
+                                        K=2,
 
                                         )
 

@@ -7,7 +7,7 @@ num_trials = 20
 
 
 for i in range(num_trials):
-    D = 1
+    D = 7
     # D = np.random.randint(2, 7)
     dofs = np.logspace(D+2, 16., num=10, base=np.exp(1), dtype=np.uint64)
 
@@ -18,12 +18,14 @@ for i in range(num_trials):
     #     [1.1, .1],
     #     [.7, 1.5]
     # ])
+    # S_g = np.array([
+    #         [1.5]])
 
     entropy = np.zeros(len(dofs))
     std = np.zeros(len(dofs))
     for i in range(len(dofs)):
-        # S = S_g/dofs[i]
-        S = S_g
+        S = S_g/dofs[i]
+        # S = S_g
         v = dofs[i]
         entropy[i] = wishart.entropy(v, S)
         # S_sq = np.square(S)
