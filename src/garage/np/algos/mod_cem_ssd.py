@@ -283,6 +283,7 @@ class MOD_CEM_SSD(BatchPolopt):
         dS = self.policy.dS
         K = self.policy.K
         a = self.init_pd_gain
+        goal = np.zeros(dS)
         # epoch-wise
         init_params = {}
         init_params['base'] = []
@@ -295,7 +296,8 @@ class MOD_CEM_SSD(BatchPolopt):
             init_params['comp'][k]['S'] = a*np.eye(dS)
             init_params['comp'][k]['D'] = a*np.eye(dS)
             init_params['comp'][k]['l'] = 1
-            init_params['comp'][k]['mu'] = self.policy.goal
+            # init_params['comp'][k]['mu'] = self.policy.goal_cart
+            init_params['comp'][k]['mu'] = goal
 
         self.policy.set_param_values(init_params)
 
