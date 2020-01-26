@@ -6,6 +6,9 @@ from scipy.stats import wishart
 from garage.np.algos import BatchPolopt
 from garage.np.policies import StableSpringDamperPolicy
 from operator import itemgetter
+from garage.misc import tensor_utils
+from rewards import process_cart_path_rwd
+from garage.np.policies import StableCartSpringDamperPolicy
 
 class MOD_CEM_SSD(BatchPolopt):
     """
@@ -340,14 +343,17 @@ class MOD_CEM_SSD(BatchPolopt):
 
         """
         paths = self.process_samples(itr, paths)
+        undiscounted_returns = [sum(path['rewards']) for path in paths]
+        rtn = np.mean(undiscounted_returns)
 
         epoch = itr // self.n_samples
         i_sample = itr - epoch * self.n_samples
         tabular.record('Epoch', epoch)
         tabular.record('# Sample', i_sample)
         # -- Stage: Process path
-        rtn = paths['average_return']
-        self.all_returns.append(paths['average_return'])
+        # rtn = paths['average_return']
+        # self.all_returns.append(paths['average_return'])
+        self.all_returns.append(rtn)
 
         # -- Stage: Update policy distribution.
         if (itr + 1) % self.n_samples == 0:
@@ -374,3 +380,75 @@ class MOD_CEM_SSD(BatchPolopt):
 
         logger.log(tabular)
         return rtn
+
+    def process_samples(self, itr, paths):
+        """Return processed sample data based on the collected paths.
+
+        Args:
+            itr (int): Iteration number.
+            paths (list[dict]): A list of collected paths
+
+        Returns:
+            dict: Processed sample data, with key
+                * average_return: (float)
+
+        """
+        # print(len(paths))
+        baselines = []
+        returns = []
+
+        max_path_length = self.max_path_length
+
+        if hasattr(self.baseline, 'predict_n'):
+            all_path_baselines = self.baseline.predict_n(paths)
+        else:
+            all_path_baselines = [
+                self.baseline.predict(path) for path in paths
+            ]
+
+        for idx, path in enumerate(paths):
+            # baselines
+            path['baselines'] = all_path_baselines[idx]
+            baselines.append(path['baselines'])
+
+            # returns
+            path['returns'] = tensor_utils.discount_cumsum(
+                path['rewards'], self.discount)
+            returns.append(path['returns'])
+
+        agent_infos = [path['agent_infos'] for path in paths]
+        agent_infos = tensor_utils.stack_tensor_dict_list([
+            tensor_utils.pad_tensor_dict(p, max_path_length)
+            for p in agent_infos
+        ])
+
+        valids = [np.ones_like(path['returns']) for path in paths]
+        valids = tensor_utils.pad_tensor_n(valids, max_path_length)
+
+        average_discounted_return = (np.mean(
+            [path['returns'][0] for path in paths]))
+
+        undiscounted_returns = [sum(path['rewards']) for path in paths]
+        self.episode_reward_mean.extend(undiscounted_returns)
+
+        # TODO
+        # ent = np.sum(self.policy.distribution.entropy(agent_infos) *
+        #              valids) / np.sum(valids)
+
+        # samples_data = dict(average_return=np.mean(undiscounted_returns))
+
+        tabular.record('Iteration', itr)
+        tabular.record('AverageDiscountedReturn', average_discounted_return)
+        tabular.record('AverageReturn', np.mean(undiscounted_returns))
+        tabular.record('Extras/EpisodeRewardMean',
+                       np.mean(self.episode_reward_mean))
+        tabular.record('NumTrajs', len(paths))
+        # tabular.record('Entropy', ent)
+        # tabular.record('Perplexity', np.exp(ent))
+        tabular.record('StdReturn', np.std(undiscounted_returns))
+        tabular.record('MaxReturn', np.max(undiscounted_returns))
+        tabular.record('MinReturn', np.min(undiscounted_returns))
+        if isinstance(self.policy, StableCartSpringDamperPolicy):
+            # only one path per parameter sample
+            process_cart_path_rwd(paths[0], self.policy.yumiKin, self.discount)
+        return paths
