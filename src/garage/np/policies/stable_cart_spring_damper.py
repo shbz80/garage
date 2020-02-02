@@ -75,9 +75,11 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
             e = -0.25*lk*(alphak**2)
             betak = np.exp(e)
             wk = alphak*betak
+            # wk = 0 #TODO: revert this
             force_S_comp += wk*Sk.dot(s-muk)
             force_D_comp += wk*Dk.dot(s_dot)
 
+        # v = 0.2
         force_S_base = S0.dot(s)
         force_D_base = D0.dot(s_dot)
 

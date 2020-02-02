@@ -13,9 +13,9 @@ def cart_rwd_func_1(x, f):
     assert(x.shape==(6,))
     assert(f.shape==(6,))
     LIN_SCALE = 1
-    ROT_SCALE = 1
+    ROT_SCALE = 1e-1
     STATE_SCALE = 1
-    ACTION_SCALE = 1e-1
+    ACTION_SCALE = 1e-4
     SCALE_MAT = np.block([
                         [LIN_SCALE*np.eye(3), np.zeros((3,3))],
                         [np.zeros((3,3)), ROT_SCALE * np.eye(3)]
@@ -37,7 +37,9 @@ def process_cart_path_rwd(path, kin_obj, discount):
     N = Q_Qdots.shape[0]
     path['observations'] = X_Xdots
     Fs = path['agent_infos']['mean']
+    Trqs = path['actions']
     path['actions'] = Fs
+    path['agent_infos']['mean'] = Trqs
     Ps = X_Xdots[:,:6]
     Rds = np.zeros(N)
     Rcs = np.zeros(N)
