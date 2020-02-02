@@ -132,6 +132,8 @@ class MOD_CEM_SSD(BatchPolopt):
         cur_S0_cov = cur_pd_scale['base'][0]['S']
         cur_S0_dof = int(cur_pd_dof['base'][0]['S'])
         sample_pd_mat['base'][0]['S'] = wishart.rvs(cur_S0_dof, cur_S0_cov/cur_S0_dof)
+        # TODO: revert this
+        # sample_pd_mat['base'][0]['S'] = cur_S0_cov
         cur_D0_cov = cur_pd_scale['base'][0]['D']
         cur_D0_dof = int(cur_pd_dof['base'][0]['D'])
         sample_pd_mat['base'][0]['D'] = wishart.rvs(cur_D0_dof, cur_D0_cov/cur_D0_dof)
@@ -293,7 +295,7 @@ class MOD_CEM_SSD(BatchPolopt):
         init_params['comp'] = []
         init_params['base'].append({})
         init_params['base'][0]['S'] = a*np.eye(dS)
-        init_params['base'][0]['D'] = a*np.eye(dS)
+        init_params['base'][0]['D'] = a*0.5*np.eye(dS)
         for k in range(K):
             init_params['comp'].append({})
             init_params['comp'][k]['S'] = a*np.eye(dS)
@@ -357,16 +359,7 @@ class MOD_CEM_SSD(BatchPolopt):
 
         # -- Stage: Update policy distribution.
         if (itr + 1) % self.n_samples == 0:
-            # avg_rtns = np.array(self.all_returns)
-            # best_inds = list(np.argsort(-avg_rtns)[:self.n_best])
-            # # best_params = self.all_params[best_inds]
-            # best_params = list(itemgetter(*best_inds)(self.all_params))
-            #
-            # self.update_stat(best_params)
-
             self.update_stat()
-            # print('Component mean 1', self.policy.params['comp'][0]['mu'])
-            # print('Component mean 2', self.policy.params['comp'][1]['mu'])
             print('Params', self.cur_params)
             # Clear for next epoch
             rtn = max(self.all_returns)
