@@ -95,7 +95,7 @@ class MOD_CEM_SSD(BatchPolopt):
 
     def get_dof_update(self, reward):
         K = self.policy.K
-        assert(reward<0)
+        assert(reward>=1)
         v1S0 = self.cur_stat['pd_dof']['base'][0]['S']
         v1D0 = self.cur_stat['pd_dof']['base'][0]['D']
         v1S = np.array([self.cur_stat['pd_dof']['comp'][k]['S'] for k in range(K)])
@@ -105,11 +105,11 @@ class MOD_CEM_SSD(BatchPolopt):
         beta = self.get_beta()
         KH_l = KH*beta['betaSk']/beta['betalk']
 
-        v2S0 = v1S0*np.exp(-beta['betaS0']*KH*reward)
-        v2D0 = v1D0*np.exp(-beta['betaD0']*KH*reward)
-        v2S = v1S*np.exp(-beta['betaSk']*KH*reward)
-        v2D = v1D*np.exp(-beta['betaDk']*KH*reward)
-        v2l = v1l*np.exp(-beta['betalk']*KH_l*reward)
+        v2S0 = v1S0*np.exp(-beta['betaS0']*KH*(1-reward))
+        v2D0 = v1D0*np.exp(-beta['betaD0']*KH*(1-reward))
+        v2S = v1S*np.exp(-beta['betaSk']*KH*(1-reward))
+        v2D = v1D*np.exp(-beta['betaDk']*KH*(1-reward))
+        v2l = v1l*np.exp(-beta['betalk']*KH_l*(1-reward))
 
         return v2S0, v2D0, v2S, v2D, v2l
 
@@ -248,7 +248,7 @@ class MOD_CEM_SSD(BatchPolopt):
             all_Dk[i] = np.array([all_params[i][1]['comp'][j]['D'] for j in range(K)])
             all_lk[i] = all_params[i][2]
 
-        v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_rtns-avg_best_rtns)
+        v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_rtns/avg_best_rtns)
 
         print(v2S0, v2D0, v2S, v2D, v2l)
 
