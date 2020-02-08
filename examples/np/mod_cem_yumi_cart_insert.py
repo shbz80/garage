@@ -53,19 +53,21 @@ def run_task(snapshot_config, *_):
         # In other RL algos one epoch consists of iteration, but in CEM one epoc corresponds
         # to one iteration of CEM that consists of n_samples rollouts.
 
+        T = 40  # episode length
+
         algo = MOD_CEM_SSD(env_spec=env.spec,
                            policy=policy,
                            baseline=baseline,
                            # best_frac=0.05,
                            best_frac=0.3,
-                           max_path_length=100,
+                           max_path_length=T,
                            n_samples=n_samples,
                            init_cov=1.,
-                           init_pd_gain=1,
+                           init_pd_gain=5,
                            elite=True,
                            temperature=.1,
-                           entropy_const=1e2,
-                           # entropy_const=1e-1,
+                           # entropy_const=1e1,
+                           entropy_const=2e1,
                            entropy_step_v=100,
                            )
         # ***important change T in block2D.py (reward def) equal to max_path_length***
@@ -73,7 +75,7 @@ def run_task(snapshot_config, *_):
         # NOTE: make sure that n_epoch_cycles == n_samples !
         # TODO: it is not clear why the above is required
         # runner.train(n_epochs=100, batch_size=1000, n_epoch_cycles=n_samples, plot=True, store_paths=True)
-        runner.train(n_epochs=30, batch_size=100, n_epoch_cycles=n_samples, plot=True, store_paths=False)
+        runner.train(n_epochs=30, batch_size=T, n_epoch_cycles=n_samples, plot=True, store_paths=False)
 
 
 # IMPORTANT: change the log directory in batch_polopt.py

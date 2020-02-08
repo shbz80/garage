@@ -86,6 +86,7 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         action_force = -force_S_base-force_D_base-force_S_comp-force_D_comp
         # action_trq = -force_S_base - force_D_base - force_S_comp - force_D_comp
         action_trq = self.J_Ad_curr.T.dot(action_force)
+        # print('Trqs:',action_trq)
         assert(action_trq.shape==(dJ,))
         # return action_trq, dict(mean=action_trq, log_std=0)
         return action_trq, dict(mean=action_force, log_std=0)

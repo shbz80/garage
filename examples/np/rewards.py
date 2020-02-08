@@ -13,7 +13,7 @@ def cart_rwd_func_1(x, f):
     assert(x.shape==(6,))
     assert(f.shape==(6,))
     LIN_SCALE = 1
-    ROT_SCALE = 1e-1
+    ROT_SCALE = 1e-2
     STATE_SCALE = 1
     ACTION_SCALE = 1e-4
     SCALE_MAT = np.block([
