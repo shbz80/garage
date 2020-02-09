@@ -93,23 +93,34 @@ class MOD_CEM_SSD(BatchPolopt):
 
         return beta
 
-    def get_dof_update(self, reward):
+    def get_dof_update(self, re, rb):
         K = self.policy.K
-        assert(reward>=1)
+        assert(re>=rb)
         v1S0 = self.cur_stat['pd_dof']['base'][0]['S']
         v1D0 = self.cur_stat['pd_dof']['base'][0]['D']
         v1S = np.array([self.cur_stat['pd_dof']['comp'][k]['S'] for k in range(K)])
         v1D = np.array([self.cur_stat['pd_dof']['comp'][k]['D'] for k in range(K)])
         v1l = self.cur_stat['l_dof']
-        KH = self.KH
         beta = self.get_beta()
-        KH_l = KH*beta['betaSk']/beta['betalk']
 
-        v2S0 = v1S0*np.exp(-beta['betaS0']*KH*(1-reward))
-        v2D0 = v1D0*np.exp(-beta['betaD0']*KH*(1-reward))
-        v2S = v1S*np.exp(-beta['betaSk']*KH*(1-reward))
-        v2D = v1D*np.exp(-beta['betaDk']*KH*(1-reward))
-        v2l = v1l*np.exp(-beta['betalk']*KH_l*(1-reward))
+        # vT = 100000
+        # v0 = self.init_pd_dof
+        # E = 30
+        # eta = 1e-10
+        # beta_m = beta['betaS0']
+        # beta_l = beta['betalk']
+
+        KH = self.KH
+        KH_l = KH * beta['betaSk'] / beta['betalk']
+
+        # KH = (np.log(vT)-np.log(v0))/((1-eta)*beta_m*E)
+        # KH_l = (np.log(vT) - np.log(v0)) / ((1 - eta) * beta_l[0] * E)
+
+        v2S0 = v1S0*np.exp(-beta['betaS0']*KH*-(1-re/rb))
+        v2D0 = v1D0*np.exp(-beta['betaD0']*KH*-(1-re/rb))
+        v2S = v1S*np.exp(-beta['betaSk']*KH*-(1-re/rb))
+        v2D = v1D*np.exp(-beta['betaDk']*KH*-(1-re/rb))
+        v2l = v1l*np.exp(-beta['betalk']*KH_l*-(1-re/rb))
 
         return v2S0, v2D0, v2S, v2D, v2l
 
@@ -248,7 +259,7 @@ class MOD_CEM_SSD(BatchPolopt):
             all_Dk[i] = np.array([all_params[i][1]['comp'][j]['D'] for j in range(K)])
             all_lk[i] = all_params[i][2]
 
-        v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_rtns/avg_best_rtns)
+        v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_best_rtns,avg_rtns)
 
         print(v2S0, v2D0, v2S, v2D, v2l)
 

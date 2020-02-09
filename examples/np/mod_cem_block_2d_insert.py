@@ -33,7 +33,7 @@ def run_task(snapshot_config, *_):
         baseline = LinearFeatureBaseline(env_spec=env.spec)
 
         # n_samples = 20
-        n_samples = 20 # number of samples in an epoch in CEM
+        n_samples = 15 # number of samples in an epoch in CEM
 
         # itr is the number of RL iterations consisting of a number of rollouts
         # for CEM when we use deterministic policy then we need only one RL rollout,
