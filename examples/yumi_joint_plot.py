@@ -15,7 +15,7 @@ sample_num = len(exp_log[0])
 T = exp_log[0][0]['observations'].shape[0]
 tm = range(T)
 
-SUCCESS_DIST = 0.08
+SUCCESS_DIST = 0.01
 SUCCESS_DIST_VEC = np.array([0.05, 0.01])
 plot_skip = 5
 plot_traj = True

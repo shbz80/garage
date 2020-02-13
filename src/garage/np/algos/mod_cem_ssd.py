@@ -42,8 +42,8 @@ class MOD_CEM_SSD(BatchPolopt):
         self.init_pd_gain = init_pd_gain
         self.init_pd_dof = policy.dS + 2.
         self.init_l_dof = 3.         # D=1
-        # self.init_pd_dof = policy.dS
-        # self.init_l_dof = 1         # D=1
+        # self.init_pd_dof = 100
+        # self.init_l_dof = 1000       # D=1
         self.best_frac = best_frac
         self.extra_std = extra_std
         self.extra_decay_time = extra_decay_time
@@ -96,6 +96,7 @@ class MOD_CEM_SSD(BatchPolopt):
     def get_dof_update(self, re, rb):
         K = self.policy.K
         assert(re>=rb)
+        assert(re<=0)
         v1S0 = self.cur_stat['pd_dof']['base'][0]['S']
         v1D0 = self.cur_stat['pd_dof']['base'][0]['D']
         v1S = np.array([self.cur_stat['pd_dof']['comp'][k]['S'] for k in range(K)])
@@ -298,19 +299,21 @@ class MOD_CEM_SSD(BatchPolopt):
         """
         dS = self.policy.dS
         K = self.policy.K
-        a = self.init_pd_gain
+        init_pd = self.init_pd_gain
         goal = np.zeros(dS)
         # epoch-wise
         init_params = {}
         init_params['base'] = []
         init_params['comp'] = []
         init_params['base'].append({})
-        init_params['base'][0]['S'] = a*np.eye(dS)
-        init_params['base'][0]['D'] = a*0.5*np.eye(dS)
+        # A = np.diag(np.array([1, 1, 1, 0.5, 0.5, 0.5]))
+        A = np.eye(6)
+        init_params['base'][0]['S'] = init_pd*A
+        init_params['base'][0]['D'] = 0.5*init_pd*A
         for k in range(K):
             init_params['comp'].append({})
-            init_params['comp'][k]['S'] = a*np.eye(dS)
-            init_params['comp'][k]['D'] = a*np.eye(dS)
+            init_params['comp'][k]['S'] = init_pd*A
+            init_params['comp'][k]['D'] = init_pd*A
             init_params['comp'][k]['l'] = 1
             # init_params['comp'][k]['mu'] = self.policy.goal_cart
             init_params['comp'][k]['mu'] = goal
