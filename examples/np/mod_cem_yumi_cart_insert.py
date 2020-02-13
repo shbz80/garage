@@ -52,7 +52,7 @@ def run_task(snapshot_config, *_):
         # In other RL algos one epoch consists of iteration, but in CEM one epoc corresponds
         # to one iteration of CEM that consists of n_samples rollouts.
 
-        T = 40  # episode length
+        T = 100  # episode length
 
         algo = MOD_CEM_SSD(env_spec=env.spec,
                            policy=policy,
@@ -74,7 +74,7 @@ def run_task(snapshot_config, *_):
         # NOTE: make sure that n_epoch_cycles == n_samples !
         # TODO: it is not clear why the above is required
         # runner.train(n_epochs=100, batch_size=1000, n_epoch_cycles=n_samples, plot=True, store_paths=True)
-        runner.train(n_epochs=40, batch_size=T, n_epoch_cycles=n_samples, plot=False, store_paths=False)
+        runner.train(n_epochs=40, batch_size=T, n_epoch_cycles=n_samples, plot=True, store_paths=False)
 
 
 # IMPORTANT: change the log directory in batch_polopt.py
@@ -82,7 +82,7 @@ run_experiment(
     run_task,
     snapshot_mode='last',
     # seed=1,
-    plot=False,
+    plot=True,
     # exp_name='mod_cem_block_KH_10e-2_10',
     # exp_name='10',
     exp_name='test_yumi_cart',
