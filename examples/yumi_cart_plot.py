@@ -27,7 +27,7 @@ yumikinparams['goal'] = GOAL
 yumiKin = YumiKinematics(yumikinparams)
 GOAL = yumiKin.goal_cart
 
-SUCCESS_DIST = .005
+SUCCESS_DIST = .002
 SUCCESS_DIST_VEC = np.array([0.05, 0.01])
 plot_skip = 10
 plot_traj = True

@@ -309,11 +309,11 @@ class MOD_CEM_SSD(BatchPolopt):
         # A = np.diag(np.array([1, 1, 1, 0.5, 0.5, 0.5]))
         A = np.eye(6)
         init_params['base'][0]['S'] = init_pd*A
-        init_params['base'][0]['D'] = 0.5*init_pd*A
+        init_params['base'][0]['D'] = 0.1*init_pd*A
         for k in range(K):
             init_params['comp'].append({})
             init_params['comp'][k]['S'] = init_pd*A
-            init_params['comp'][k]['D'] = init_pd*A
+            init_params['comp'][k]['D'] = 0.1*init_pd*A
             init_params['comp'][k]['l'] = 1
             # init_params['comp'][k]['mu'] = self.policy.goal_cart
             init_params['comp'][k]['mu'] = goal

@@ -66,7 +66,7 @@ def run_task(snapshot_config, *_):
                            elite=True,
                            temperature=.1,
                            # entropy_const=1e1,
-                           entropy_const=1e1,
+                           entropy_const=2e1,
                            entropy_step_v=100,
                            )
         # ***important change T in block2D.py (reward def) equal to max_path_length***
