@@ -25,7 +25,7 @@ def run_task(snapshot_config, *_):
         env = GarageEnv(env_name='YumiPeg-v1')
         # K=7 components
         kin_params_yumi = {}
-        kin_params_yumi['urdf'] = '/home/shahbaz/Software/mjc_models/yumi_ABB_left.urdf'
+        kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumikin/models/yumi_ABB_left.urdf'
         kin_params_yumi['base_link'] = 'world'
         # kin_params_yumi['end_link'] = 'gripper_l_base'
         kin_params_yumi['end_link'] = 'left_contact_point'

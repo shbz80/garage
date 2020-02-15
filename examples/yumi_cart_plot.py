@@ -18,7 +18,7 @@ T = exp_log[0][0]['observations'].shape[0]
 tm = range(T)
 
 yumikinparams = {}
-yumikinparams['urdf'] = '/home/shahbaz/Software/mjc_models/yumi_ABB_left.urdf'
+yumikinparams['urdf'] = '/home/shahbaz/Software/yumikin/models/yumi_ABB_left.urdf'
 yumikinparams['base_link'] = 'world'
 # yumikinparams['end_link'] = 'gripper_l_base'
 yumikinparams['end_link'] = 'left_contact_point'
