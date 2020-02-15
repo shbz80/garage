@@ -7,10 +7,12 @@ S_g_w = np.eye(2)
 
 # S_g = wishart.rvs(4, S_g_w)
 
-S_g = np.array([
-    [1.1, .1],
-    [.7, 1.5]
-])
+# S_g = np.array([
+#     [1.1, .1],
+#     [.7, 1.5]
+# ])
+
+S_g = np.eye(2)
 
 
 def cost(S_g, samples):
@@ -25,16 +27,16 @@ def cost(S_g, samples):
 #     [4, 0],
 #     [0, 4]
 # ])
-num_trials = 10
-dof = 4000
+num_trials = 4
+dof = 100
 print('Entropy', wishart.entropy(dof, S_g/dof))
+colors = ['r','b','g','m']
+fig, ax = plt.subplots()
+ax.set_xlim((-5, 5))
+ax.set_ylim((-5, 5))
 for i in range(num_trials):
-    fig, ax = plt.subplots()
-    ax.set_xlim((-5, 5))
-    ax.set_ylim((-5, 5))
-    W = wishart.rvs(dof, S_g)
-    plot_ellipse(ax, np.zeros(2), W/(dof))
-
+    W = wishart.rvs(dof, S_g/dof)
+    plot_ellipse(ax, np.zeros(2), W,colors[i])
 plt.show()
 
 

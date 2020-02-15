@@ -3,10 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from gym.envs.mujoco.block2D import GOAL
 # from glob import glob
-base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/exp'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/exp'
+base_np_filename = '/home/shahbaz/Software/garage/examples/tf/data/local/exp'
+# base_np_filename = '/home/shahbaz/Software/garage/vices_garage/data/local/exp'
 # exp_name ='cem_block_2d'
 # exp_name ='mod_cem_block_2d_basic_elite'
-exp_name ='test'
+# exp_name = 'trpo_block_2d_vices'
+exp_name = 'trpo_block_2d'
+# exp_name ='test'
 # exp_name ='cmaes_block_2d'
 filename = base_np_filename + '/' + exp_name + '/' + 'exp_log.pkl'
 infile = open(filename, 'rb')
@@ -20,7 +24,7 @@ tm = range(T)
 # GOAL = np.array([0.4, -0.1])
 SUCCESS_DIST = 0.05
 SUCCESS_DIST_VEC = np.array([0.05, 0.01])
-plot_skip = 5
+plot_skip = 10
 plot_traj = False
 
 for ep in range(epoch_num):

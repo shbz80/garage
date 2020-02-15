@@ -4,7 +4,7 @@ import collections
 
 from dowel import logger, tabular
 import numpy as np
-
+import pickle
 from garage.misc import tensor_utils as np_tensor_utils
 from garage.np.algos import RLAlgorithm
 from garage.sampler import OnPolicyVectorizedSampler
@@ -87,14 +87,17 @@ class BatchPolopt(RLAlgorithm):
             float: The average return in last epoch cycle.
 
         """
+        log_file_path = runner._snapshotter.snapshot_dir + '/exp_log.pkl'
         last_return = None
-
+        exp_log = []
         for _ in runner.step_epochs():
             runner.step_path = runner.obtain_samples(runner.step_itr)
             tabular.record('TotalEnvSteps', runner.total_env_steps)
             last_return = self.train_once(runner.step_itr, runner.step_path)
             runner.step_itr += 1
-
+            exp_log.append(runner.step_path)
+        with open(log_file_path, 'wb') as log_file:
+            pickle.dump(exp_log, log_file)
         return last_return
 
     def train_once(self, itr, paths):

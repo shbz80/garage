@@ -5,7 +5,7 @@ import os
 import gym
 from garage.experiment import run_experiment
 from garage.np.baselines import LinearFeatureBaseline
-from garage.tf.algos import TRPO
+from garage.tf.algos import PPO
 from garage.tf.envs import TfEnv
 from garage.tf.experiment import LocalTFRunner
 from garage.tf.policies import GaussianMLPPolicy
@@ -20,10 +20,12 @@ def run_task(snapshot_config, *_):
 
         baseline = LinearFeatureBaseline(env_spec=env.spec)
 
-        algo = TRPO(env_spec=env.spec,
+        algo = PPO(env_spec=env.spec,
                     policy=policy,
                     baseline=baseline,
                     max_path_length=100,
+                   gae_lambda=0.95,
+                   lr_clip_range=0.2,
                     discount=0.99,
                     max_kl_step=0.05)
 
@@ -36,7 +38,7 @@ run_experiment(
     snapshot_mode='last',
     # seed=1,
     plot=True,
-    exp_name='trpo_block_2d',
+    exp_name='ppo_block_2d',
     exp_prefix='exp',
     log_dir=None,
 )
