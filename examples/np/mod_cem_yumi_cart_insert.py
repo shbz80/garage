@@ -62,7 +62,7 @@ def run_task(snapshot_config, *_):
                            max_path_length=T,
                            n_samples=n_samples,
                            init_cov=1.,
-                           init_pd_gain=2,
+                           S_init=2,
                            elite=True,
                            temperature=.1,
                            # entropy_const=1e1,

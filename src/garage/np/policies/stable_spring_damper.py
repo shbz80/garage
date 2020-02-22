@@ -1,18 +1,18 @@
 """Policy based on the paper
 Modeling robot discrete movements with state-varying stiffness and damping
 """
-import akro
+# import akro
 import numpy as np
 from garage.np.policies.base import Policy
 
 class StableSpringDamperPolicy(Policy):
     def __init__(self, env_spec, goal, K=1):
-        assert isinstance(env_spec.action_space, akro.Box)
+        # assert isinstance(env_spec.action_space, akro.Box)
         assert(K>=0)
-        super().__init__(env_spec)
-        self.obs_dim = env_spec.observation_space.flat_dim
+        # super().__init__(env_spec)
+        self.obs_dim = 14
         assert(self.obs_dim%2 == 0)
-        self.action_dim = env_spec.action_space.flat_dim
+        self.action_dim = 7
         assert(self.obs_dim/2 == self.action_dim)
         self.K = K
         self.dS = self.obs_dim//2

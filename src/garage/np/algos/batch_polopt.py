@@ -1,7 +1,6 @@
 """A batch-based algorithm interleaves sampling and policy optimization."""
 import abc
 import collections
-
 from dowel import tabular
 import numpy as np
 import pickle
@@ -31,9 +30,8 @@ class BatchPolopt(RLAlgorithm):
 
     """
 
-    def __init__(self, policy, baseline, discount, max_path_length, n_samples):
+    def __init__(self, policy, discount, max_path_length, n_samples):
         self.policy = policy
-        self.baseline = baseline
         self.discount = discount
         self.max_path_length = max_path_length
         self.n_samples = n_samples

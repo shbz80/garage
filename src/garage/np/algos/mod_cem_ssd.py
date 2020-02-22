@@ -1,48 +1,47 @@
 """Cross Entropy Method."""
-from dowel import logger, tabular
+# from dowel import logger, tabular
 import numpy as np
 # from scipy.stats import invwishart
 from scipy.stats import wishart
-from garage.np.algos import BatchPolopt
-from garage.np.policies import StableSpringDamperPolicy
+# from garage.np.algos import BatchPolopt
 from operator import itemgetter
 from garage.misc import tensor_utils
-from rewards import process_cart_path_rwd
+from rewards import process_cart_path_rwd, process_samples_fill
 from garage.np.policies import StableCartSpringDamperPolicy
 
-class MOD_CEM_SSD(BatchPolopt):
+class MOD_CEM_SSD(object):
     """
     Modified from cem.py
     Modified CEM for stable spring damper (ssd) policy
     """
 
     def __init__(self,
-                 env_spec,
                  policy,
-                 baseline,
                  n_samples,
                  discount=0.99,
-                 max_path_length=500,
                  init_cov=1.,
-                 init_pd_gain=1.,
+                 S_init=1.,
+                 D_init=1.,
                  best_frac=0.05,
                  extra_std=1.,
                  extra_decay_time=100,
                  elite=True,
                  temperature=0.1,
                  entropy_const = 0.1,
-                 entropy_step_v = 100,):
-        assert(isinstance(policy, StableSpringDamperPolicy))
-        super().__init__(policy, baseline, discount, max_path_length,
-                         n_samples)
-        self.env_spec = env_spec
+                 entropy_step_v = 100, ):
+        assert(isinstance(policy, StableCartSpringDamperPolicy))
+        # super(MOD_CEM_SSD, self).__init__(policy, discount, max_path_length,
+        #                  n_samples)
+        self.discount = discount
         self.n_samples = n_samples
+        self.policy = policy
         self.best_frac = best_frac
         self.init_mu_cov = init_cov * np.eye(policy.K * policy.dS)
-        self.init_pd_gain = init_pd_gain
+        self.S_init = S_init
+        self.D_init = D_init
         self.init_pd_dof = policy.dS + 2.
         self.init_l_dof = 3.         # D=1
-        # self.init_pd_dof = 100
+        self.init_pd_dof = 20
         # self.init_l_dof = 1000       # D=1
         self.best_frac = best_frac
         self.extra_std = extra_std
@@ -262,7 +261,7 @@ class MOD_CEM_SSD(BatchPolopt):
 
         v2S0, v2D0, v2S, v2D, v2l = self.get_dof_update(avg_best_rtns,avg_rtns)
 
-        print(v2S0, v2D0, v2S, v2D, v2l)
+        print('Wishart dof', v2S0, v2D0, v2S, v2D, v2l)
 
         self.cur_stat['mu_mean'] = np.average(all_mu, axis=0, weights=weights)
         self.cur_stat['mu_cov'] = np.cov(all_mu, rowvar=False, ddof=None, aweights=weights)
@@ -285,7 +284,7 @@ class MOD_CEM_SSD(BatchPolopt):
             self.cur_stat['pd_dof']['comp'][k]['S'] = v2S[k]
             self.cur_stat['pd_dof']['comp'][k]['D'] = v2D[k]
 
-    def train(self, runner):
+    def train(self):
         """Initialize variables and start training.
 
         Args:
@@ -299,23 +298,19 @@ class MOD_CEM_SSD(BatchPolopt):
         """
         dS = self.policy.dS
         K = self.policy.K
-        init_pd = self.init_pd_gain
         goal = np.zeros(dS)
         # epoch-wise
         init_params = {}
         init_params['base'] = []
         init_params['comp'] = []
         init_params['base'].append({})
-        # A = np.diag(np.array([1, 1, 1, 0.5, 0.5, 0.5]))
-        A = np.eye(6)
-        init_params['base'][0]['S'] = init_pd*A
-        init_params['base'][0]['D'] = 0.1*init_pd*A
+        init_params['base'][0]['S'] = self.S_init
+        init_params['base'][0]['D'] = self.D_init
         for k in range(K):
             init_params['comp'].append({})
-            init_params['comp'][k]['S'] = init_pd*A
-            init_params['comp'][k]['D'] = 0.1*init_pd*A
+            init_params['comp'][k]['S'] = self.S_init
+            init_params['comp'][k]['D'] = self.D_init
             init_params['comp'][k]['l'] = 1
-            # init_params['comp'][k]['mu'] = self.policy.goal_cart
             init_params['comp'][k]['mu'] = goal
 
         self.policy.set_param_values(init_params)
@@ -348,9 +343,9 @@ class MOD_CEM_SSD(BatchPolopt):
         assert self.n_best >= 1, (
             'n_samples is too low. Make sure that n_samples * best_frac >= 1')
 
-        return super().train(runner)
+        # return super(MOD_CEM_SSD, self).train(runner)
 
-    def train_once(self, itr, paths):
+    def train_once(self, itr, path):
         """Perform one step of policy optimization given one batch of samples.
 
         Args:
@@ -358,14 +353,14 @@ class MOD_CEM_SSD(BatchPolopt):
             paths (list[dict]): A list of collected paths.
 
         """
-        paths = self.process_samples(itr, paths)
-        undiscounted_returns = [sum(path['rewards']) for path in paths]
-        rtn = np.mean(undiscounted_returns)
+        path = self.process_sample(path)
+        undiscounted_return = sum(path['rewards'])
+        rtn = np.mean(undiscounted_return)
 
         epoch = itr // self.n_samples
         i_sample = itr - epoch * self.n_samples
-        tabular.record('Epoch', epoch)
-        tabular.record('# Sample', i_sample)
+        # tabular.record('Epoch', epoch)
+        # tabular.record('# Sample', i_sample)
         # -- Stage: Process path
         # rtn = paths['average_return']
         # self.all_returns.append(paths['average_return'])
@@ -374,88 +369,24 @@ class MOD_CEM_SSD(BatchPolopt):
         # -- Stage: Update policy distribution.
         if (itr + 1) % self.n_samples == 0:
             self.update_stat()
-            print('Params', self.cur_params)
+            # print('Params', self.cur_params)
             # Clear for next epoch
             rtn = max(self.all_returns)
-            self.all_returns.clear()
-            self.all_params.clear()
+            del self.all_returns[:]
+            del self.all_params[:]
 
         # -- Stage: Generate a new policy for next path sampling
         self.cur_params = self._sample_params()
+        # print('Current params', self.cur_params)
         self.all_params.append(self.cur_params)
         self.set_params(self.cur_params)
 
-        logger.log(tabular)
+        # logger.log(tabular)
         return rtn
 
-    def process_samples(self, itr, paths):
+    def process_sample(self, path):
         """Return processed sample data based on the collected paths.
-
-        Args:
-            itr (int): Iteration number.
-            paths (list[dict]): A list of collected paths
-
-        Returns:
-            dict: Processed sample data, with key
-                * average_return: (float)
-
         """
-        # print(len(paths))
-        baselines = []
-        returns = []
-
-        max_path_length = self.max_path_length
-
-        if hasattr(self.baseline, 'predict_n'):
-            all_path_baselines = self.baseline.predict_n(paths)
-        else:
-            all_path_baselines = [
-                self.baseline.predict(path) for path in paths
-            ]
-
-        for idx, path in enumerate(paths):
-            # baselines
-            path['baselines'] = all_path_baselines[idx]
-            baselines.append(path['baselines'])
-
-            # returns
-            path['returns'] = tensor_utils.discount_cumsum(
-                path['rewards'], self.discount)
-            returns.append(path['returns'])
-
-        agent_infos = [path['agent_infos'] for path in paths]
-        agent_infos = tensor_utils.stack_tensor_dict_list([
-            tensor_utils.pad_tensor_dict(p, max_path_length)
-            for p in agent_infos
-        ])
-
-        valids = [np.ones_like(path['returns']) for path in paths]
-        valids = tensor_utils.pad_tensor_n(valids, max_path_length)
-
-        average_discounted_return = (np.mean(
-            [path['returns'][0] for path in paths]))
-
-        undiscounted_returns = [sum(path['rewards']) for path in paths]
-        self.episode_reward_mean.extend(undiscounted_returns)
-
-        # TODO
-        # ent = np.sum(self.policy.distribution.entropy(agent_infos) *
-        #              valids) / np.sum(valids)
-
-        # samples_data = dict(average_return=np.mean(undiscounted_returns))
-
-        tabular.record('Iteration', itr)
-        tabular.record('AverageDiscountedReturn', average_discounted_return)
-        tabular.record('AverageReturn', np.mean(undiscounted_returns))
-        tabular.record('Extras/EpisodeRewardMean',
-                       np.mean(self.episode_reward_mean))
-        tabular.record('NumTrajs', len(paths))
-        # tabular.record('Entropy', ent)
-        # tabular.record('Perplexity', np.exp(ent))
-        tabular.record('StdReturn', np.std(undiscounted_returns))
-        tabular.record('MaxReturn', np.max(undiscounted_returns))
-        tabular.record('MinReturn', np.min(undiscounted_returns))
-        if isinstance(self.policy, StableCartSpringDamperPolicy):
-            # only one path per parameter sample
-            process_cart_path_rwd(paths[0], self.policy.yumiKin, self.discount)
-        return paths
+        path = process_samples_fill(path, self.policy.T)
+        path = process_cart_path_rwd(path, self.policy.yumiKin, self.discount)
+        return path

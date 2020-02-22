@@ -2,38 +2,39 @@
 Modeling robot discrete movements with state-varying stiffness and damping
 in Cartesian space
 """
-import akro
+# import akro
+import copy
 import numpy as np
-from garage.np.policies.stable_spring_damper import StableSpringDamperPolicy
-from YumiKinematics import YumiKinematics
+from yumikin.YumiKinematics import YumiKinematics
 
-class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
-    def __init__(self, env_spec, goal, yumikinparams, K=1):
-        # assert isinstance(env_spec.action_space, akro.Box)
-        # assert(K>=0)
-        super().__init__(env_spec, goal, K)
-        self.obs_dim = env_spec.observation_space.flat_dim
-        # assert(self.obs_dim%2 == 0)
+class StableCartSpringDamperPolicy():
+    def __init__(self, goal, yumikinparams, T, K=1):
+        assert (K >= 0)
+        self.obs_dim = 14
+        self.action_dim = 7
+        self.K = K
+        self.dS = self.obs_dim // 2
+        assert (goal.shape == (self.dS,))
+        self.goal = goal
+        self.params = {}
+        self.params['base'] = []
+        self.params['comp'] = []
         self.dJ = self.obs_dim//2
-        # self.action_dim = env_spec.action_space.flat_dim
-        # assert(self.obs_dim/2 == self.action_dim)
-        # self.K = K
         self.dS = 6
         assert(goal.shape==(7,))
-        # self.goal = goal
         self.kinparams = yumikinparams
         self.yumiKin = YumiKinematics(yumikinparams)
         self.goal_cart = self.yumiKin.goal_cart
-        # self.params = {}
-        # self.params['base'] = []
-        # self.params['comp'] = []
-        # self.initialized = False
         self.J_Ad_curr = None
+        self.initialized = False
+        self.dU = 7
+        self.T = T
 
-    # @property
-    # def vectorized(self):
-    #     """Vectorized or not."""
-    #     return False
+    @property
+    def vectorized(self):
+        """Vectorized or not."""
+        return False
+
     def reset(self, dones=None):
         self.yumiKin = YumiKinematics(self.kinparams)
 
@@ -42,6 +43,11 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         q = joint_state[:dJ]
         q_dot = joint_state[dJ:]
         return self.yumiKin.get_cart_error_frame_terms(q,q_dot)
+
+    def act(self, x, obs, t, noise=None):
+        action_trq, agent_info = self.get_action(obs)
+        action_force = agent_info['mean']
+        return action_trq, action_force
 
     def get_action(self, observation):
         """Get action from the policy."""
@@ -55,13 +61,20 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         s_dot = x_dot_d_e
         self.J_Ad_curr = J_Ad
 
-        # s = observation[:dS] - self.goal
-        # s_dot = observation[dS:]
-
         base_params = self.params['base']
         component_params = self.params['comp']
         S0 = base_params[0]['S']
         D0 = base_params[0]['D']
+
+        # s_trans = 200
+        # s_rot = 2
+        # S0 = np.diag(
+        #     np.array([s_trans, s_trans, s_trans, s_rot, s_rot, s_rot]))
+        #
+        # d_trans = .2
+        # d_rot = .1
+        # D0 = np.diag(
+        #     np.array([d_trans, d_trans, d_trans, d_rot, d_rot, d_rot]))
 
         force_S_comp = np.zeros(dS)
         force_D_comp = np.zeros(dS)
@@ -123,7 +136,7 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         assert (S0.shape == D0.shape == (dS, dS))
         assert (np.all(np.linalg.eigvals(S0) > 0))
         assert (np.all(np.linalg.eigvals(D0) > 0))
-        self.params['base'] = b_params.copy()
+        self.params['base'] = copy.copy(b_params)
 
         c_params = params['comp']
         assert (isinstance(c_params, list))
@@ -138,6 +151,6 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
             assert (np.all(np.linalg.eigvals(Dk) > 0))
             assert(muk.shape == (dS,))
             assert(lk>0)
-        self.params['comp'] = c_params.copy()
+        self.params['comp'] = copy.copy(c_params)
         self.initialized = True
         return
