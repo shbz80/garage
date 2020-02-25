@@ -65,16 +65,8 @@ class StableCartSpringDamperPolicy():
         component_params = self.params['comp']
         S0 = base_params[0]['S']
         D0 = base_params[0]['D']
-
-        # s_trans = 200
-        # s_rot = 2
-        # S0 = np.diag(
-        #     np.array([s_trans, s_trans, s_trans, s_rot, s_rot, s_rot]))
-        #
-        # d_trans = .2
-        # d_rot = .1
-        # D0 = np.diag(
-        #     np.array([d_trans, d_trans, d_trans, d_rot, d_rot, d_rot]))
+        # S0 = np.diag(np.diag(S0)) # TODO
+        # D0 = np.diag(np.diag(D0))
 
         force_S_comp = np.zeros(dS)
         force_D_comp = np.zeros(dS)
@@ -97,11 +89,8 @@ class StableCartSpringDamperPolicy():
         force_D_base = D0.dot(s_dot)
 
         action_force = -force_S_base-force_D_base-force_S_comp-force_D_comp
-        # action_trq = -force_S_base - force_D_base - force_S_comp - force_D_comp
         action_trq = self.J_Ad_curr.T.dot(action_force)
-        # print('Trqs:',action_trq)
         assert(action_trq.shape==(dJ,))
-        # return action_trq, dict(mean=action_trq, log_std=0)
         return action_trq, dict(mean=action_force, log_std=0)
 
     def get_actions(self, observations):
