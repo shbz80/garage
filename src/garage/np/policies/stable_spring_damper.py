@@ -6,7 +6,7 @@ import numpy as np
 from garage.np.policies.base import Policy
 
 class StableSpringDamperPolicy(Policy):
-    def __init__(self, env_spec, goal, K=1):
+    def __init__(self, env_spec, goal, T, K=1):
         assert isinstance(env_spec.action_space, akro.Box)
         assert(K>=0)
         super().__init__(env_spec)
@@ -23,6 +23,7 @@ class StableSpringDamperPolicy(Policy):
         self.params['base'] = []
         self.params['comp'] = []
         self.initialized = False
+        self.T = T
 
     @property
     def vectorized(self):

@@ -8,27 +8,18 @@ from garage.np.policies.stable_spring_damper import StableSpringDamperPolicy
 from YumiKinematics import YumiKinematics
 
 class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
-    def __init__(self, env_spec, goal, yumikinparams, K=1):
-        # assert isinstance(env_spec.action_space, akro.Box)
-        # assert(K>=0)
-        super().__init__(env_spec, goal, K)
+    def __init__(self, env_spec, goal, yumikinparams, T, K=1):
+        super().__init__(env_spec, goal, T, K)
         self.obs_dim = env_spec.observation_space.flat_dim
-        # assert(self.obs_dim%2 == 0)
         self.dJ = self.obs_dim//2
-        # self.action_dim = env_spec.action_space.flat_dim
-        # assert(self.obs_dim/2 == self.action_dim)
-        # self.K = K
         self.dS = 6
         assert(goal.shape==(7,))
-        # self.goal = goal
         self.kinparams = yumikinparams
         self.yumiKin = YumiKinematics(yumikinparams)
         self.goal_cart = self.yumiKin.goal_cart
-        # self.params = {}
-        # self.params['base'] = []
-        # self.params['comp'] = []
-        # self.initialized = False
         self.J_Ad_curr = None
+        self.dU = 7
+        self.T = T
 
     # @property
     # def vectorized(self):
@@ -54,9 +45,6 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         s = x_d_e
         s_dot = x_dot_d_e
         self.J_Ad_curr = J_Ad
-
-        # s = observation[:dS] - self.goal
-        # s_dot = observation[dS:]
 
         base_params = self.params['base']
         component_params = self.params['comp']

@@ -1,7 +1,6 @@
 """A batch-based algorithm interleaves sampling and policy optimization."""
 import abc
 import collections
-
 from dowel import tabular
 import numpy as np
 import pickle

@@ -44,18 +44,18 @@ def run_task(snapshot_config, *_):
         # to one iteration of CEM that consists of n_samples rollouts.
 
         algo = MOD_CEM_SSD(env_spec=env.spec,
-                   policy=policy,
-                   baseline=baseline,
-                   # best_frac=0.05,
-                   best_frac=0.3,
-                   max_path_length=100,
-                   n_samples=n_samples,
-                   init_cov=9.,
-                   init_pd_gain=1,
-                   elite=True,
-                   temperature = .1,
-                   entropy_const=5.,
-                   entropy_step_v=100,
+                           policy=policy,
+                           baseline=baseline,
+                           # best_frac=0.05,
+                           best_frac=0.3,
+                           max_path_length=100,
+                           n_samples=n_samples,
+                           init_cov_diag=9.,
+                           S_init=1,
+                           elite=True,
+                           temperature = .1,
+                           entropy_const=5.,
+                           entropy_step_v=100,
                            )
         # ***important change T in block2D.py (reward def) equal to max_path_length***
         runner.setup(algo, env, sampler_cls=BatchSampler)
