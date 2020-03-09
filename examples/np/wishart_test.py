@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils import plot_ellipse
 from scipy.stats import wishart
-
+import random
+plt.rcParams.update({'font.size': 18})
+random.seed(1)
 S_g_w = np.eye(2)
 
 # S_g = wishart.rvs(4, S_g_w)
@@ -28,15 +30,27 @@ def cost(S_g, samples):
 #     [0, 4]
 # ])
 num_trials = 4
-dof = 100
-print('Entropy', wishart.entropy(dof, S_g/dof))
+dof = 4
+# print('Entropy', wishart.entropy(dof, S_g/dof))
 colors = ['r','b','g','m']
-fig, ax = plt.subplots()
-ax.set_xlim((-5, 5))
-ax.set_ylim((-5, 5))
+fig, ax = plt.subplots(1)
+ax.set_xlim((-4, 4))
+ax.set_ylim((-4, 4))
 for i in range(num_trials):
     W = wishart.rvs(dof, S_g/dof)
     plot_ellipse(ax, np.zeros(2), W,colors[i])
+plt.show()
+dof = 100
+# print('Entropy', wishart.entropy(dof, S_g/dof))
+colors = ['r','b','g','m']
+fig, ax = plt.subplots(1)
+ax.set_xlim((-4, 4))
+ax.set_ylim((-4, 4))
+for i in range(num_trials):
+    W = wishart.rvs(dof, S_g/dof)
+    plot_ellipse(ax, np.zeros(2), W,colors[i])
+
+
 plt.show()
 
 
