@@ -13,9 +13,21 @@ S_g_w = np.eye(2)
 #     [1.1, .1],
 #     [.7, 1.5]
 # ])
+font_size_1 = 12
+font_size_2 = 10
+plt.rcParams.update({'font.size': font_size_1})
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+
+plt.rcParams["figure.figsize"] = (6,2)
+fig = plt.figure()
+plt.axis('off')
+
+ax1 = fig.add_subplot(1, 2, 1)
+# ax.set_xlabel(r'Iteration')
+# ax.set_ylabel(r'Reward')
 
 S_g = np.eye(2)
-
 
 def cost(S_g, samples):
     n = samples.shape[0]
@@ -33,25 +45,24 @@ num_trials = 4
 dof = 4
 # print('Entropy', wishart.entropy(dof, S_g/dof))
 colors = ['r','b','g','m']
-fig, ax = plt.subplots(1)
-ax.set_xlim((-4, 4))
-ax.set_ylim((-4, 4))
+ax1.set_xlim((-4, 4))
+ax1.set_ylim((-4, 4))
 for i in range(num_trials):
     W = wishart.rvs(dof, S_g/dof)
-    plot_ellipse(ax, np.zeros(2), W,colors[i])
-plt.show()
+    plot_ellipse(ax1, np.zeros(2), W,colors[i])
+# plt.show()
+
+ax2 = fig.add_subplot(1, 2, 2)
 dof = 100
 # print('Entropy', wishart.entropy(dof, S_g/dof))
-colors = ['r','b','g','m']
-fig, ax = plt.subplots(1)
-ax.set_xlim((-4, 4))
-ax.set_ylim((-4, 4))
+ax2.set_xlim((-4, 4))
+ax2.set_ylim((-4, 4))
 for i in range(num_trials):
     W = wishart.rvs(dof, S_g/dof)
-    plot_ellipse(ax, np.zeros(2), W,colors[i])
-
-
-plt.show()
+    plot_ellipse(ax2, np.zeros(2), W,colors[i])
+plt.subplots_adjust(left=0.1, bottom=0.15, right=0.9, top=0.95, wspace=0.4, hspace=0.2)
+fig.savefig("wishart_samples.pdf")
+plt.show(block=False)
 
 
 # num_samples = 15
@@ -94,4 +105,4 @@ plt.show()
 #         plot_ellipse(ax, ellipse_mean, Sig_curr, color='k')
 #         ax.set_title('Itr'+str(i))
 
-plt.show()
+# plt.show()

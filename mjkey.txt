@@ -1,21 +1,20 @@
-MuJoCo Pro Lab license activation key, number 6535, type 6.
+MuJoCo Pro Personal license activation key, number 70774, type 6.
 
-Issued to Prof. Danica Kragic, KTH.
+Issued to Shahbaz Abdul Khader <shahak@kth.se>.
 
-Expires February 15, 2020.
+Expires February 14, 2021.
 
-Do not share this file with anyone other than the users covered
-by your license agreement with Roboti LLC. This file activates
-MuJoCo Pro on any computer running any supported OS.
+This file activates MuJoCo Pro on a single computer with id:
+LINUX_20nN10VM7S4yh5_x51CGBiMO8APeD16120OAK0N246
 
 Do not modify this file. Its entire content, including the
 plain text section, is used by the activation manager.
 
-c6aa8958328ac971e3ac7458f7cd3d4fdb07b5c964f4cc7ecad53058f3ec90a2
-ed35715f7205d80c99eaa478ae3b78019039a8b450ae521990d7823c851e2901
-f4b7cf2ab4fd78f5dfcb234c343e5296cc77c39be43fae996f23bf1ec1aaa79c
-0a288f93bcdab1ccaf32f1f4ac1e3e64ee6b5eb6d9da3e718dd8e2ded614144e
-96b453ca404a5fe94f6d02042068198a5c16d77f263d7a907d82c0dd68f790d4
-ef023f40e6a3e90aa5cc41bfe0f0087f8d214e991cf32fc6a4937162344b5f7c
-5a9845872a213675a56ceac3ed95fd02acc1e31a833dcb40308bee2e8b43cabd
-cb4e6118df25c0a9d317da182e192db26da20208cb8f05db3ffe58c6feba9288
+4a8e612bb86ec59ee5a94ba382ad45495a495e53a249acf7c2348c2d965030e7
+8456956d54dc8c72ba186dd0e024d3ad399bf0112ecb481768062e245e7726bd
+1b327a8fdaeed77e399b062a89f717b1f6101beef6cd4a402510c63525667c9c
+a79e045d31de18728b3026038ab970347363d9e31fd4793f93576608047ec402
+b7b14a9064596e98d8418a81db1413532ae68cd11175d6b44b13719dbc6773c7
+268b783a843cc97435d77902f8c771b034bab493f1fc485390ba750fb5a67e3e
+40af40ac2092ff17029a6a7602033aca06a17ff4540f3e7936a1312d5b6c6393
+5cd5b0ad4f4303562f74d62218e88dd95fec2011a5f51b76894160bf52884aa0

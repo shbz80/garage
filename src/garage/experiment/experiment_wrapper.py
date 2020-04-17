@@ -35,7 +35,7 @@ def run_experiment(argv):
         BaseException: Propagate any exception in the experiment.
 
     """
-    input("Press Enter to continue...")
+    # input("Press Enter to continue...")
     now = datetime.datetime.now(dateutil.tz.tzlocal())
 
     # avoid name clashes when running distributed jobs

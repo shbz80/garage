@@ -6,8 +6,14 @@ import random
 
 num_trials = 10
 random.seed(7)
-plt.rcParams.update({'font.size': 18})
-
+font_size_1 = 12
+font_size_2 = 10
+plt.rcParams.update({'font.size': font_size_1})
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+plt.rcParams["figure.figsize"] = (6,2)
+fig = plt.figure()
+plt.axis('off')
 for i in range(num_trials):
     # D = 7
     D = np.random.randint(2, 10)
@@ -71,15 +77,15 @@ for i in range(num_trials):
 
     # plt.figure()
 
-    ax = plt.subplot(1,2,1)
-    ax.plot(entropy, np.log(dofs))
-    ax.set_xlabel(r'$H$')
-    ax.set_ylabel(r'$ln\nu$')
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax1.plot(entropy, np.log(dofs))
+    ax1.set_xlabel(r'$H$')
+    ax1.set_ylabel(r'$ln\ \nu$')
 
-    ax = plt.subplot(1, 2, 2)
-    ax.plot(entropy_1, np.log(dofs))
-    ax.set_xlabel(r'$H$')
-    ax.set_ylabel(r'$ln\nu$')
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.plot(entropy_1, np.log(dofs))
+    ax2.set_xlabel(r'$H$')
+    ax2.set_ylabel(r'$ln\ \nu$')
 
     # ax = plt.subplot(2, 3, 1)
     # ax.plot(entropy, dofs)
@@ -108,5 +114,6 @@ for i in range(num_trials):
     # ax = plt.subplot(2, 3, 5)
     # ax.plot(np.sqrt(var_mat.flatten()))
     # ax.set_title('std_mat')
-
-plt.show()
+plt.subplots_adjust(left=0.12, bottom=0.25, right=0.95, top=0.95, wspace=0.4, hspace=0.2)
+fig.savefig("wishart_linear.pdf")
+plt.show(block=False)
