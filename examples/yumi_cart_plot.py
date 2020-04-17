@@ -4,9 +4,11 @@ import numpy as np
 from gym.envs.mujoco.yumipeg import GOAL
 from YumiKinematics import YumiKinematics
 
-base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/exp'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-partial-imped'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-woinit-full-imped'
+base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-full-imped'
 # exp_name ='test'
-exp_name ='test_yumi_cart'
+exp_name ='2'
 filename = base_np_filename + '/' + exp_name + '/' + 'exp_log.pkl'
 infile = open(filename, 'rb')
 exp_log = pickle.load(infile)
@@ -18,19 +20,20 @@ T = exp_log[0][0]['observations'].shape[0]
 tm = range(T)
 
 yumikinparams = {}
-yumikinparams['urdf'] = '/home/shahbaz/Software/yumikin/models/yumi_ABB_left.urdf'
+yumikinparams['urdf'] = '/home/shahbaz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'
 yumikinparams['base_link'] = 'world'
 # yumikinparams['end_link'] = 'gripper_l_base'
+# yumikinparams['end_link'] = 'left_tool0'
 yumikinparams['end_link'] = 'left_contact_point'
 yumikinparams['euler_string'] = 'sxyz'
 yumikinparams['goal'] = GOAL
 yumiKin = YumiKinematics(yumikinparams)
 GOAL = yumiKin.goal_cart
 
-SUCCESS_DIST = .005
+SUCCESS_DIST = .01
 SUCCESS_DIST_VEC = np.array([0.05, 0.01])
-plot_skip = 10
-plot_traj = True
+plot_skip = 20
+plot_traj = False
 
 for ep in range(epoch_num):
     epoch = exp_log[ep]
@@ -168,8 +171,8 @@ for ep in range(epoch_num):
     rewards_disc_rtn[ep] = np.mean([epoch[s]['returns'][0] for s in range(sample_num)])
     rewards_undisc_rwd[ep] = np.mean([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
     for s in range(sample_num):
-        sample = np.min(np.absolute(epoch[s]['observations'][:,:6]), axis=0)
-        # sample = epoch[s]['observations'][-1, :6]
+        sample = np.min(np.absolute(epoch[s]['observations'][:,:3]), axis=0)
+        # sample = epoch[s]['observations'][:, :6]
         success_mat[ep, s] = np.linalg.norm(sample) < SUCCESS_DIST
 
 success_stat = np.sum(success_mat, axis=1)*(100/sample_num)
