@@ -394,6 +394,14 @@ class MOD_CEM_SSD(BatchPolopt):
             The average return in last epoch cycle.
 
         """
+        import pickle
+        param_file_peg_winit = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-full-imped/2/exp_param.pkl'
+        infile = open(param_file_peg_winit, 'rb')
+        peg_winit_param = pickle.load(infile)
+        infile.close()
+        last_ep = peg_winit_param[0]
+        last_param = last_ep['epoc_params'][1]
+
         dS = self.policy.dS
         K = self.policy.K
         goal = np.zeros(dS)
@@ -420,7 +428,8 @@ class MOD_CEM_SSD(BatchPolopt):
             init_params['comp'][k]['l'] = 1
             init_params['comp'][k]['mu'] = self.mu_init
 
-        self.policy.set_param_values(init_params)
+        # self.policy.set_param_values(init_params) #todo
+        self.set_params(last_param)
 
         self.init_mu_mean, self.init_sd_scale, self.init_l_scale = self.get_params()
         self.cur_stat = {}
@@ -485,7 +494,7 @@ class MOD_CEM_SSD(BatchPolopt):
             self.all_params.clear()
 
         # -- Stage: Generate a new policy for next path sampling
-        self.cur_params = self._sample_params()
+        # self.cur_params = self._sample_params() #todo
         self.all_params.append(self.cur_params)
         self.set_params(self.cur_params)
 
