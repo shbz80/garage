@@ -42,6 +42,7 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         K = self.K
         assert (observation.shape == (dJ * 2,))
         x_d_e, x_dot_d_e, J_Ad = self.get_cart_state(observation)
+        # M = self.yumiKin.get_cart_intertia_d(observation[:dJ])
         s = x_d_e
         s_dot = x_dot_d_e
         self.J_Ad_curr = J_Ad
@@ -49,13 +50,19 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         base_params = self.params['base']
         component_params = self.params['comp']
         S0 = base_params[0]['S']
+        # S0 = np.diag(np.diag(S0))
+        # D0 = np.diag(2.*np.sqrt(np.diag(M)*np.diag(S0)))
         D0 = base_params[0]['D']
+        # D0 = np.diag(np.diag(D0))
 
         force_S_comp = np.zeros(dS)
         force_D_comp = np.zeros(dS)
         for k in range(K):
             Sk = component_params[k]['S']
+            # Sk = np.diag(np.diag(Sk))
             Dk = component_params[k]['D']
+            # Dk = np.diag(np.diag(Dk))
+            # Dk = np.diag(2*np.sqrt(np.diag(M)*np.diag(Sk)))
             muk = component_params[k]['mu']
             lk = component_params[k]['l']
             alphak = s.dot(Sk.dot(s-2.0*muk))
@@ -72,11 +79,9 @@ class StableCartSpringDamperPolicy(StableSpringDamperPolicy):
         force_D_base = D0.dot(s_dot)
 
         action_force = -force_S_base-force_D_base-force_S_comp-force_D_comp
-        # action_trq = -force_S_base - force_D_base - force_S_comp - force_D_comp
         action_trq = self.J_Ad_curr.T.dot(action_force)
-        # print('Trqs:',action_trq)
+        # action_trq = np.zeros(7)
         assert(action_trq.shape==(dJ,))
-        # return action_trq, dict(mean=action_trq, log_std=0)
         return action_trq, dict(mean=action_force, log_std=0)
 
     def get_actions(self, observations):

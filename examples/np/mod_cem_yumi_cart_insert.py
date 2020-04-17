@@ -15,34 +15,84 @@ from garage.sampler import BatchSampler
 from garage.envs import GarageEnv
 from garage.experiment import LocalRunner
 from garage.np.policies import StableCartSpringDamperPolicy
-from gym.envs.mujoco.yumipeg import GOAL
+from gym.envs.mujoco.yumipeg import GOAL, INIT
+from yumikin.YumiKinematics import YumiKinematics
 
-
-# GOAL = np.array([-1.63688, -1.22777, 1.28612, 0.446995, 2.21936, 1.57011, 0.47748])
 def run_task(snapshot_config, *_):
     """Train CEM with Block2D-v1 environment."""
     with LocalRunner(snapshot_config=snapshot_config) as runner:
         env = GarageEnv(env_name='YumiPeg-v1')
         # K=7 components
         kin_params_yumi = {}
-        kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumikin/models/yumi_ABB_left.urdf'
+        kin_params_yumi['urdf'] = '/home/shahbaz/Software/yumi_kinematics/yumikin/models/yumi_ABB_left.urdf'
         kin_params_yumi['base_link'] = 'world'
-        # kin_params_yumi['end_link'] = 'gripper_l_base'
+        # kin_params_yumi['end_link'] = 'left_tool0'
         kin_params_yumi['end_link'] = 'left_contact_point'
         kin_params_yumi['euler_string'] = 'sxyz'
         kin_params_yumi['goal'] = GOAL
+
+        T = 200  # episode length
+
+        yumiKin = YumiKinematics(kin_params_yumi)
+        x_d_i, _, _ = yumiKin.get_cart_error_frame_terms(INIT, np.zeros(7))
+        delat_goal_cart_dist = x_d_i[:3]
+        delat_goal_rot_dist = x_d_i[3:]
+        assert (np.any(np.abs(delat_goal_rot_dist) < np.pi / 2))  # check if any rotation coordinate is more than pi/2
+        r_cart_sq = np.square(np.linalg.norm(delat_goal_cart_dist))
+        r_cart_comp_sq = r_cart_sq * np.ones(3)
+        r_rot_sq = np.square(np.pi / 4)  # so that 2-sigma is pi/2
+        r_rot_comp_sq = r_rot_sq * np.ones(3)
+        init_mu_cov_diag = np.concatenate((r_cart_comp_sq, r_rot_comp_sq))
+        # init_mu_cov_diag = np.ones(6)
+        init_mu_mu = np.zeros(6)
+        M_norm = 0.4  # a value between 0 and 1.
+        # s_trans = 200.
+        # s_rot = 4.
+        s_trans = 200.
+        s_rot = 4.
+        # s_trans = 1.
+        # s_rot = 1.
+        S0_init = np.diag(np.array([s_trans, s_trans, s_trans, s_rot, s_rot, s_rot]))
+        M_d_x = yumiKin.get_cart_intertia_d(INIT)
+        M_d = np.diag(M_d_x)
+        D_d = np.sqrt(np.multiply(M_d, np.diag(S0_init)))
+        print('D_init:', D_d)
+        d_trans = np.max(D_d[:3])
+        d_rot = np.max(D_d[3:])
+        # d_trans = 1
+        # d_rot = 1
+        SD_mat_init = {}
+        SD_mat_init['M_init'] = M_norm
+        SD_mat_init['D_trans_s'] = d_trans / M_norm
+        SD_mat_init['D_rot_s'] = d_rot / M_norm
+        SD_mat_init['S_trans_s'] = s_trans / M_norm
+        SD_mat_init['S_rot_s'] = s_rot / M_norm
+        SD_mat_init['v'] = 30.
+        # SD_mat_init['v'] = 8.
+        SD_mat_init['local_scale'] = 4.
+        # SD_mat_init['local_scale'] = 1.
+
+        n_samples = 15  # number of samples in an epoch in CEM
+        n_epochs = 10
+        entropy_const = 1.0e1
+        v_scalar_init = 20
+        # v_scalar_init = 2
+        K = 2
+        best_frac = 0.2
+        init_cov_diag = init_mu_cov_diag
+        elite = True
+        temperature = .1
+        entropy_step_v = 100
 
         policy = StableCartSpringDamperPolicy(
             env.spec,
             GOAL,
             kin_params_yumi,
-            K=2,
+            T,
+            K=K,
         )
 
         baseline = LinearFeatureBaseline(env_spec=env.spec)
-
-        # n_samples = 20
-        n_samples = 15  # number of samples in an epoch in CEM
 
         # itr is the number of RL iterations consisting of a number of rollouts
         # for CEM when we use deterministic policy then we need only one RL rollout,
@@ -52,29 +102,29 @@ def run_task(snapshot_config, *_):
         # In other RL algos one epoch consists of iteration, but in CEM one epoc corresponds
         # to one iteration of CEM that consists of n_samples rollouts.
 
-        T = 100  # episode length
+
 
         algo = MOD_CEM_SSD(env_spec=env.spec,
                            policy=policy,
                            baseline=baseline,
-                           # best_frac=0.05,
-                           best_frac=0.2,
+                           best_frac=best_frac,
                            max_path_length=T,
                            n_samples=n_samples,
-                           init_cov_diag=1.,
-                           S_init=2,
-                           elite=True,
-                           temperature=.1,
-                           # entropy_const=1e1,
-                           entropy_const=2e1,
-                           entropy_step_v=100,
+                           init_cov_diag=init_cov_diag,
+                           SD_mat_init = SD_mat_init,
+                           v_scalar_init=v_scalar_init,
+                           mu_init=init_mu_mu,
+                           elite=elite,
+                           temperature=temperature,
+                           entropy_const=entropy_const,
+                           entropy_step_v=entropy_step_v,
                            )
         # ***important change T in block2D.py (reward def) equal to max_path_length***
         runner.setup(algo, env, sampler_cls=BatchSampler)
         # NOTE: make sure that n_epoch_cycles == n_samples !
         # TODO: it is not clear why the above is required
         # runner.train(n_epochs=100, batch_size=1000, n_epoch_cycles=n_samples, plot=True, store_paths=True)
-        runner.train(n_epochs=40, batch_size=T, n_epoch_cycles=n_samples, plot=True, store_paths=False)
+        runner.train(n_epochs=n_epochs, batch_size=T, n_epoch_cycles=n_samples, plot=True, store_paths=False)
 
 
 # IMPORTANT: change the log directory in batch_polopt.py
@@ -85,9 +135,14 @@ run_experiment(
     plot=True,
     # exp_name='mod_cem_block_KH_10e-2_10',
     # exp_name='10',
-    exp_name='test_yumi_cart',
+    exp_name='1',
     # exp_prefix='mod_cem_block_KH_20e-2_ns_20',
-    exp_prefix='exp',
+    # exp_prefix='peg_winit_partial_imped',
+    # exp_prefix='peg_winit_full_imped',
+    # exp_prefix='peg_random_init_pos_itr50',
+    exp_prefix='peg_random_init_pos_itr0',
+
+
     log_dir=None,
 )
 
