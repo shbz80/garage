@@ -4,11 +4,13 @@ import collections
 from dowel import tabular
 import numpy as np
 import pickle
+import copy
 
 from garage.misc import tensor_utils
 from garage.np.algos.base import RLAlgorithm
 from garage.sampler import OnPolicyVectorizedSampler
 from garage.tf.samplers import BatchSampler
+# from garage.np.algos.mod_cem_ssd import MOD_CEM_SSD
 
 
 class BatchPolopt(RLAlgorithm):
@@ -66,12 +68,12 @@ class BatchPolopt(RLAlgorithm):
 
         """
 
-        # log_file_path = "/home/shahbaz/Software/garage/examples/np/data/local/exp/cmaes_block_2d/exp_log.pkl"
         log_file_path = runner._snapshotter.snapshot_dir + '/exp_log.pkl'
-        # log_file_path = "/home/shahbaz/Software/garage/examples/np/data/local/exp/cem_block_2d/exp_log.pkl"
+        param_file_path = runner._snapshotter.snapshot_dir + '/exp_param.pkl'
         last_return = None
 
         exp_log = []       # for CEM
+        param_log = []
         for _ in runner.step_epochs():
             epoc_samples = []
             for _ in range(self.n_samples):
@@ -79,12 +81,19 @@ class BatchPolopt(RLAlgorithm):
                 # assuming deterministic policy we keep only one path
                 epoc_samples.append(runner.step_path[0])
                 tabular.record('TotalEnvSteps', runner.total_env_steps)
+                if (runner.step_itr + 1) % self.n_samples == 0:
+                    param_dict = {}
+                    param_dict['epoc_params'] = copy.deepcopy(self.all_params)
+                    param_dict['epoc_stat'] = copy.deepcopy(self.cur_stat)
+                    param_log.append(param_dict)
                 last_return = self.train_once(runner.step_itr,
                                               runner.step_path)
                 runner.step_itr += 1
             exp_log.append(epoc_samples)
         with open(log_file_path, 'wb') as log_file:
             pickle.dump(exp_log, log_file)
+        with open(param_file_path, 'wb') as log_file:
+            pickle.dump(param_log, log_file)
         return last_return
 
     def process_samples(self, itr, paths):
