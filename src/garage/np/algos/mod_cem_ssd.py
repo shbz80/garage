@@ -8,7 +8,7 @@ from garage.np.policies import StableSpringDamperPolicy
 from operator import itemgetter
 from garage.misc import tensor_utils
 from rewards import process_cart_path_rwd, process_samples_fill
-from garage.np.policies import StableCartSpringDamperPolicy
+# from garage.np.policies import StableCartSpringDamperPolicy
 
 class MOD_CEM_SSD(BatchPolopt):
     """
@@ -460,7 +460,7 @@ class MOD_CEM_SSD(BatchPolopt):
             paths (list[dict]): A list of collected paths.
 
         """
-        path = self.process_sample(path)
+        path = self.process_sample(path[0])
         undiscounted_return = sum(path['rewards'])
         rtn = np.mean(undiscounted_return)
 
@@ -479,6 +479,8 @@ class MOD_CEM_SSD(BatchPolopt):
             # print('Params', self.cur_params)
             # Clear for next epoch
             rtn = max(self.all_returns)
+            print('mean returns', np.mean(self.all_returns))
+            print('std returns', np.std(self.all_returns))
             self.all_returns.clear()
             self.all_params.clear()
 

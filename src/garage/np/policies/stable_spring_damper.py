@@ -55,7 +55,8 @@ class StableSpringDamperPolicy(Policy):
             alphak = np.clip(alphak,0.,None)
             e = -0.25*lk*(alphak**2)
             betak = np.exp(e)
-            wk = alphak*betak
+            wk = alphak*betak #TODO: revert
+            # wk = 0
             trq_S_comp += wk*Sk.dot(s-muk)
             trq_D_comp += wk*Dk.dot(s_dot)
 
@@ -63,6 +64,7 @@ class StableSpringDamperPolicy(Policy):
         trq_D_base = D0.dot(s_dot)
 
         action_trq = -trq_S_base-trq_D_base-trq_S_comp-trq_D_comp
+        # action_trq = np.zeros(2)
         assert(action_trq.shape==(dS,))
         return action_trq, dict(mean=action_trq, log_std=0)
 

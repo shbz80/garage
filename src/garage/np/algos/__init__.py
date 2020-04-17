@@ -6,8 +6,9 @@ from garage.np.algos.cma_es import CMAES
 from garage.np.algos.nop import NOP
 from garage.np.algos.off_policy_rl_algorithm import OffPolicyRLAlgorithm
 from garage.np.algos.mod_cem_ssd import MOD_CEM_SSD
+from garage.np.algos.mod_cem_ssd_blocks import MOD_CEM_SSD_BLOCKS
 __all__ = [
-    'RLAlgorithm', 'BatchPolopt', 'CEM', 'CMAES', 'NOP', 'OffPolicyRLAlgorithm', 'MOD_CEM_SSD'
+    'RLAlgorithm', 'BatchPolopt', 'CEM', 'CMAES', 'NOP', 'OffPolicyRLAlgorithm', 'MOD_CEM_SSD', 'MOD_CEM_SSD_BLOCKS'
 ]
 # __all__ = [
 #     'RLAlgorithm', 'BatchPolopt', 'CEM', 'CMAES', 'NOP', 'OffPolicyRLAlgorithm'
