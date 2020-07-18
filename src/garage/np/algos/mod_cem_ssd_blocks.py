@@ -77,6 +77,21 @@ class MOD_CEM_SSD_BLOCKS(MOD_CEM_SSD):
             The average return in last epoch cycle.
 
         """
+        # todo
+        # import pickle
+        # param_file_peg_winit = '/home/shahbaz/Software/garage/examples/np/data/local/blocks-initpos2-K8/2/exp_param.pkl'
+        # infile = open(param_file_peg_winit, 'rb')
+        # peg_winit_param = pickle.load(infile)
+        # infile.close()
+        # epoch = 4
+        # last_ep = peg_winit_param[epoch]  # select epoch
+        # sample_ = 0
+        # last_param = last_ep['epoc_params'][sample_]  # select sample from epoch
+
+        # last_param = last_ep['epoc_params'][0]  # select sample from epoch
+        # last_ep = peg_winit_param[15] # success epoch
+        # last_param = last_ep['epoc_params'][2]  # select sample from success epoch
+
         dS = self.policy.dS
         K = self.policy.K
         goal = np.zeros(dS)
@@ -99,6 +114,7 @@ class MOD_CEM_SSD_BLOCKS(MOD_CEM_SSD):
             init_params['comp'][k]['mu'] = self.mu_init
 
         self.policy.set_param_values(init_params)
+        # self.set_params(last_param) #todo
 
         self.init_mu_mean, self.init_sd_scale, self.init_l_scale = self.get_params()
         self.cur_stat = {}

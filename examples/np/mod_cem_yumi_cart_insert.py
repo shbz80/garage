@@ -73,7 +73,7 @@ def run_task(snapshot_config, *_):
         # SD_mat_init['local_scale'] = 1.
 
         n_samples = 15  # number of samples in an epoch in CEM
-        n_epochs = 10
+        n_epochs = 100
         entropy_const = 1.0e1
         v_scalar_init = 20
         # v_scalar_init = 2

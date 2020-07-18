@@ -8,7 +8,7 @@ from utils import iMOGIC_energy_block_vec, iMOGIC_energy_blocks
 from matplotlib import rc
 
 font_size_1 = 12
-font_size_2 = 10
+font_size_2 = 14
 plt.rcParams.update({'font.size': font_size_1})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -29,12 +29,17 @@ k1-4
 
 base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/blocks-initpos'
 prefix = 'blocks-initpos2-K'
-task_list = ['1','2','3']
+# task_list = ['1','2','3']
+task_list = ['2']
 # task_list = ['3','2','1']
-K_list = ['1','8','16']
-exp_name = ['4','2','1']
-col = ['g','b','m']
+# K_list = ['1','8','16']
+K_list = ['8']
+# exp_name = ['4','2','1']
+exp_name = ['2']
+# col = ['g','b','m']
+col = ['b']
 
+# plt.rcParams["figure.figsize"] = (3,6)
 plt.rcParams["figure.figsize"] = (6,2)
 fig = plt.figure()
 plt.axis('off')
@@ -67,27 +72,37 @@ for i in range(len(K_list)):
 
     success_stat = np.sum(success_mat, axis=1)*(100/sample_num)
 
+    # ax = fig.add_subplot(2, 1, 1)
     ax = fig.add_subplot(1, 2, 1)
     ax.set_xlabel(r'Iteration')
     ax.set_ylabel(r'Reward')
-    # ax.set_title(r'\textbf{(a)}', position=(-0.24, 0.79), fontsize=font_size_1)
+    # ax.set_title(r'\textbf{(a)}', position=(-0.27, 0.9), fontsize=font_size_2)
+    ax.set_title(r'\textbf{(a)}', position=(-0.25,0.85), fontsize=font_size_2)
     # ax.plot(rewards_undisc_mean, label='undisc. reward')
     inds = range(1,epoch_num+1)[1::10]
     heights = rewards_undisc_mean[1::10]
     yerr = rewards_undisc_std[1::10]
     yerr[0] = 0
     plt.errorbar(inds, heights, yerr=yerr, label='Task'+task_list[i],color=col[i])
-    ax.legend(frameon=False,prop={'size': font_size_2})
+
+    # plt.plot(inds, heights,color=col[i])
+    # plt.fill_between(inds, heights - yerr * 1.96, heights + yerr * 1.96, alpha=0.2, color=col[i])
+
+    # ax.legend(frameon=False,prop={'size': font_size_2})
+    # ax = fig.add_subplot(2, 1, 2)
     ax = fig.add_subplot(1, 2, 2)
     ax.set_ylabel(r'Success rate')
     ax.set_xlabel(r'Iteration')
-    # ax.set_title(r'\textbf{(b)}', position=(-0.3, 0.79), fontsize=font_size_1)
-    width = 2
+    # ax.set_title(r'\textbf{(b)}', position=(-0.27, 0.95), fontsize=font_size_2)
+    ax.set_title(r'\textbf{(b)}', position=(-0.25,0.85), fontsize=font_size_2)
+    width = 4
     # ax.plot(range(1,epoch_num+1)[::10], success_stat[::10])
     inds = range(1, epoch_num + 1)[i*2::10]
     success = success_stat[i*2::10]
     ax.bar(inds, success,width,color=col[i])
-    plt.subplots_adjust(left=0.12, bottom=0.22, right=0.98, top=0.98, wspace=0.4, hspace=0.2)
+    # plt.subplots_adjust(left=.25, bottom=0.1, right=0.98, top=0.93, wspace=0, hspace=.4)
+    plt.subplots_adjust(left=0.12, bottom=0.25, right=0.99, top=0.95, wspace=0.45, hspace=0)
 plt.show()
 # fig.savefig("pos2_comparison.pdf", bbox_inches='tight',pad_inches=0.0)
-# fig.savefig("block_all_tasks.pdf")
+# fig.savefig("block_all_tasks_2.pdf")
+fig.savefig("block_all_tasks_rss.pdf")

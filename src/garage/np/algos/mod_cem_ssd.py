@@ -124,47 +124,6 @@ class MOD_CEM_SSD(BatchPolopt):
 
         return v2S0, v2D0, v2S, v2D, v2l
 
-
-    # def _sample_params(self):
-    #     K = self.policy.K
-    #     dS = self.policy.dS
-    #     cur_mu_mean = self.cur_stat['mu_mean']
-    #     cur_mu_cov = self.cur_stat['mu_cov']
-    #     cur_pd_scale = self.cur_stat['sd_scale']
-    #     cur_pd_dof = self.cur_stat['sd_dof']
-    #     cur_l_scale = self.cur_stat['l_scale']
-    #     cur_l_dof = self.cur_stat['l_dof']
-    #
-    #     sample_mu = np.random.multivariate_normal(cur_mu_mean, cur_mu_cov)
-    #     sample_pd_mat = {}
-    #     sample_pd_mat['base'] = []
-    #     sample_pd_mat['comp'] = []
-    #     sample_pd_mat['base'].append({})
-    #     cur_S0_cov = cur_pd_scale['base'][0]['S']
-    #     cur_S0_dof = int(cur_pd_dof['base'][0]['S'])
-    #     sample_pd_mat['base'][0]['S'] = wishart.rvs(cur_S0_dof, cur_S0_cov/cur_S0_dof)
-    #     # TODO: revert this
-    #     # sample_pd_mat['base'][0]['S'] = cur_S0_cov
-    #     cur_D0_cov = cur_pd_scale['base'][0]['D']
-    #     cur_D0_dof = int(cur_pd_dof['base'][0]['D'])
-    #     sample_pd_mat['base'][0]['D'] = wishart.rvs(cur_D0_dof, cur_D0_cov/cur_D0_dof)
-    #     for k in range(K):
-    #         sample_pd_mat['comp'].append({})
-    #         cur_Sk_cov = cur_pd_scale['comp'][k]['S']
-    #         cur_Sk_dof = int(cur_pd_dof['comp'][k]['S'])
-    #         sample_pd_mat['comp'][k]['S'] = wishart.rvs(cur_Sk_dof, cur_Sk_cov/cur_Sk_dof)
-    #         cur_Dk_cov = cur_pd_scale['comp'][k]['D']
-    #         cur_Dk_dof = int(cur_pd_dof['comp'][k]['D'])
-    #         sample_pd_mat['comp'][k]['D'] = wishart.rvs(cur_Dk_dof, cur_Dk_cov/cur_Dk_dof)
-    #
-    #     sample_l = np.zeros(K)
-    #     for k in range(K):
-    #         cur_l_dof_k = int(cur_l_dof[k])
-    #         sample_l[k] = wishart.rvs(cur_l_dof_k, cur_l_scale[k]/cur_l_dof_k)
-    #
-    #     sample_params = (sample_mu, sample_pd_mat, sample_l)
-    #     return sample_params
-
     def check_for_sd_dof_equal(self):
         K = self.policy.K
         dof_list = []
@@ -394,6 +353,7 @@ class MOD_CEM_SSD(BatchPolopt):
             The average return in last epoch cycle.
 
         """
+        # todo
         # import pickle
         # param_file_peg_winit = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-full-imped/2/exp_param.pkl'
         # infile = open(param_file_peg_winit, 'rb')
