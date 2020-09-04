@@ -6,7 +6,12 @@ from YumiKinematics import YumiKinematics
 
 # base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-partial-imped'
 # base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-woinit-full-imped'
-base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-full-imped'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-winit-full-imped'
+base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-woinit-ro15-beta10-Stinit200-Srinit4-initpos3'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-woinit-ro15-beta10-Stinit250-Srinit1-lowv'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/peg-woinit-ro15-beta10-Stinit200-Srinit4'
+
+
 # exp_name ='test'
 exp_name ='2'
 filename = base_np_filename + '/' + exp_name + '/' + 'exp_log.pkl'
@@ -30,7 +35,7 @@ yumikinparams['goal'] = GOAL
 yumiKin = YumiKinematics(yumikinparams)
 GOAL = yumiKin.goal_cart
 
-SUCCESS_DIST = .01
+SUCCESS_DIST = .025
 SUCCESS_DIST_VEC = np.array([0.05, 0.01])
 plot_skip = 20
 plot_traj = False
@@ -171,9 +176,11 @@ for ep in range(epoch_num):
     rewards_disc_rtn[ep] = np.mean([epoch[s]['returns'][0] for s in range(sample_num)])
     rewards_undisc_rwd[ep] = np.mean([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
     for s in range(sample_num):
-        sample = np.min(np.absolute(epoch[s]['observations'][:,:3]), axis=0)
+        # sample = np.min(np.absolute(epoch[s]['observations'][:,:3]), axis=0)
+        sample = np.min(np.linalg.norm(epoch[s]['observations'][:, :3],axis=1), axis=0)
         # sample = epoch[s]['observations'][:, :6]
-        success_mat[ep, s] = np.linalg.norm(sample) < SUCCESS_DIST
+        # success_mat[ep, s] = np.linalg.norm(sample) < SUCCESS_DIST
+        success_mat[ep, s] = sample < SUCCESS_DIST
 
 success_stat = np.sum(success_mat, axis=1)*(100/sample_num)
 

@@ -140,9 +140,11 @@ for ep in range(epoch_num):
     rewards_undisc_mean[ep] = np.mean([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
     rewards_undisc_std[ep] = np.std([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
     for s in range(sample_num):
-        sample = np.min(np.absolute(epoch[s]['observations'][:,:3]), axis=0)
+        # sample = np.min(np.absolute(epoch[s]['observations'][:,:3]), axis=0)
+        sample = np.min(np.linalg.norm(epoch[s]['observations'][:, :3],axis=1), axis=0)
         # sample = epoch[s]['observations'][:, :6]
-        success_mat[ep, s] = np.linalg.norm(sample) < SUCCESS_DIST
+        # success_mat[ep, s] = np.linalg.norm(sample) < SUCCESS_DIST
+        success_mat[ep, s] = sample < SUCCESS_DIST
 success_stat = np.sum(success_mat, axis=1)*(100/sample_num)
 
 interval = 5
@@ -163,29 +165,33 @@ plt.subplots_adjust(left=0.13, bottom=0.22, right=.99, top=0.87, wspace=0.5, hsp
 # plt.show(block=False)
 fig1.savefig("yumi_mjc_progress.pdf")
 
-plt.rcParams["figure.figsize"] = (6,2)
+plt.rcParams["figure.figsize"] = (6,1.35)
 fig2 = plt.figure()
 # plt.axis('off')
 ax3 = fig2.add_subplot(1, 2, 1)
 ax3.set_ylabel(r'$ln\ \nu$')
 ax3.set_xlabel('Iteration')
-ax3.set_title(r'\textbf{(c)}',position=(-0.3,0.97), fontsize=font_size_2)
+ax3.set_title(r'\textbf{(c)}',position=(-0.3,0.94), fontsize=font_size_2)
 ax3.set_xticks(range(0,100,20))
-ax3.plot(np.log(Vw), label=r'with init', color='b')
-ax3.plot(np.log(Vwo), label=r'w/o init', color='g')
-ax3.legend(prop={'size': font_size_3},frameon=False)
-# ax3.ticklabel_format(axis="y", style="sci", scilimits=(0,00))
+# ax3.plot(np.log(Vw), label=r'with init', color='b')
+ax3.plot(np.log(Vw), color='b')
+# ax3.plot(np.log(Vwo), label=r'w/o init', color='g')
+
+# ax3.set_ylim(-5)
+ax3.legend(loc='upper left', bbox_to_anchor=(0.5, 0.6), frameon=False, ncol=1, prop={'size': font_size_3})
+
 
 ax4 = fig2.add_subplot(1, 2, 2)
 ax4.set_ylabel(r'S. D.')
 ax4.set_xlabel('Iteration')
-ax4.set_title(r'\textbf{(d)}',position=(-0.32,0.97), fontsize=font_size_2)
+ax4.set_title(r'\textbf{(d)}',position=(-0.25,0.94), fontsize=font_size_2)
 ax4.set_xticks(range(0,100,20))
 ax4.plot(mu_std, label=r'$\textbf{s}$', color='m')
 ax4.plot(l_std, label=r'$\textbf{l}$', color='c')
 # ax4.ticklabel_format(axis="y", style="sci", scilimits=(0,00))
 ax4.legend(prop={'size': font_size_3},frameon=False)
-plt.subplots_adjust(left=0.13, bottom=0.22, right=0.99, top=0.87, wspace=0.5, hspace=0.7)
+# plt.subplots_adjust(left=0.13, bottom=0.22, right=0.99, top=0.87, wspace=0.5, hspace=0.7)
+plt.subplots_adjust(left=0.13, bottom=0.31, right=.99, top=0.86, wspace=0.4, hspace=0.7)
 # plt.show(block=False)
 fig2.savefig("param_var.pdf")
 
@@ -196,15 +202,17 @@ plt.rcParams.update({'font.size': font_size_1})
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
-plt.rcParams["figure.figsize"] = (12,4.5)
+# plt.rcParams["figure.figsize"] = (12,4.5)
+plt.rcParams["figure.figsize"] = (6,4.5)
+plt.rcParams.update({'font.size': font_size_2})
 rc('axes', linewidth=2)
 fig3 = plt.figure()
 plt.axis('off')
-ax5 = fig3.add_subplot(1, 2, 2, projection='3d')
-ax5.set_xlabel(r'$s_1$',fontsize=font_size_2)
-ax5.set_ylabel(r'$s_2$',fontsize=font_size_2)
-ax5.set_zlabel(r'$s_3$',fontsize=font_size_2)
-ax5.set_title(r'\textbf{(b)}',position=(0.1,.94), fontsize=font_size_2)
+ax5 = fig3.add_subplot(1, 1, 1, projection='3d')
+ax5.set_xlabel(r'$s_1$',fontsize=font_size_2,labelpad=1)
+ax5.set_ylabel(r'$s_2$',fontsize=font_size_2,labelpad=1)
+ax5.set_zlabel(r'$s_3$',fontsize=font_size_2,labelpad=1)
+ax5.set_title(r'\textbf{(g)}',position=(0.2,.94), fontsize=font_size_2)
 last_ep = peg_rnd_50_data[6]
 success_mat = np.zeros(sample_num)
 # selected_samplex = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -218,17 +226,23 @@ for s in selected_samplex:
         ax5.plot3D(pos[:, 0], pos[:, 1], pos[:, 2], color='b', linewidth=3,label='Trajectory')
     else:
         ax5.plot3D(pos[:, 0], pos[:, 1], pos[:, 2], color='b', linewidth=3)
-ax5.scatter(0,0,0,color='r',marker='o',s=50, label='Goal')
+# ax5.scatter(0,0,0,color='r',marker='o',s=50, label='Goal')
+ax5.scatter(0,0,0,color='r',marker='o',s=50)
 ax5.set_yticklabels([])
 ax5.set_xticklabels([])
 ax5.set_zticklabels([])
+# plt.legend(loc='upper left', bbox_to_anchor=(.4, 0.15),frameon=False,ncol=2,prop={'size': font_size_3},)
+plt.legend(loc='upper left', bbox_to_anchor=(0.12, 0.17),frameon=False, prop={'size': font_size_2},)
+plt.subplots_adjust(left=0.0, bottom=0.04, right=1., top=1., wspace=0.0, hspace=0.0)
 print('last_ep_success_rate',success_mat)
 
-ax6 = fig3.add_subplot(1, 2, 1, projection='3d')
-ax6.set_xlabel(r'$s_1$',fontsize=font_size_2)
-ax6.set_ylabel(r'$s_2$',fontsize=font_size_2)
-ax6.set_zlabel(r'$s_3$',fontsize=font_size_2)
-ax6.set_title(r'\textbf{(a)}',position=(0.1,.94), fontsize=font_size_2)
+fig4 = plt.figure()
+plt.axis('off')
+ax6 = fig4.add_subplot(1, 1, 1, projection='3d')
+ax6.set_xlabel(r'$s_1$',fontsize=font_size_2,labelpad=1)
+ax6.set_ylabel(r'$s_2$',fontsize=font_size_2,labelpad=1)
+ax6.set_zlabel(r'$s_3$',fontsize=font_size_2,labelpad=1)
+ax6.set_title(r'\textbf{(f)}',position=(0.2,.94), fontsize=font_size_2)
 first_ep = peg_rnd_0_data[9]
 success_mat = np.zeros(sample_num)
 # selected_samplex = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -239,7 +253,8 @@ for s in selected_samplex:
     min_pos = np.min(np.absolute(pos), axis=0)
     success_mat[s] = np.linalg.norm(min_pos) < SUCCESS_DIST
     if s == 2:
-        ax6.plot3D(pos[:, 0], pos[:, 1], pos[:, 2], color='b', linewidth=3,label='Trajectory')
+        # ax6.plot3D(pos[:, 0], pos[:, 1], pos[:, 2], color='b', linewidth=3,label='Trajectory')
+        ax6.plot3D(pos[:, 0], pos[:, 1], pos[:, 2], color='b', linewidth=3)
     else:
         ax6.plot3D(pos[:, 0], pos[:, 1], pos[:, 2], color='b', linewidth=3)
 ax6.scatter(0,0,0,color='r',marker='o',s=50, label='Goal')
@@ -247,7 +262,8 @@ ax6.set_yticklabels([])
 ax6.set_xticklabels([])
 ax6.set_zticklabels([])
 print('first_ep_success_rate',success_mat)
-plt.legend(loc='upper left', bbox_to_anchor=(.4, 0.12),frameon=False,ncol=2,prop={'size': font_size_3},)
+# plt.legend(loc='upper left', bbox_to_anchor=(.4, 0.15),frameon=False,ncol=2,prop={'size': font_size_3},)
+plt.legend(loc='upper left', bbox_to_anchor=(0.5, 0.17),frameon=False,prop={'size': font_size_2},)
 plt.subplots_adjust(left=0.0, bottom=0.04, right=1., top=1., wspace=0.0, hspace=0.0)
 # fig3.savefig("yumi_mjc_rand_init.pdf")
 plt.show(block=True)

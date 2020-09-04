@@ -22,13 +22,13 @@ import pickle
 base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local'
 # prefix = 'blocks-initpos3-K16'
 # prefix = 'blocks_random_init_pos'
-prefix = 'blocks_random_init_pos2'
-exp_name = 'itr4'
+# prefix = 'blocks_random_init_pos2'
+# exp_name = 'itr4'
 # exp_name = 'itr49'
 # exp_name = 'itr30'
 # exp_name = '1'
-# prefix = 'test'
-# exp_name = 'temp'
+prefix = 'test'
+exp_name = 'temp'
 dir_name = base_np_filename + '/' + prefix + '/' + exp_name
 filename = dir_name + '/' + 'hyperparam.pkl'
 
@@ -37,18 +37,18 @@ def run_task(snapshot_config, *_):
     with LocalRunner(snapshot_config=snapshot_config) as runner:
         env = GarageEnv(env_name='Block2D-v1')
         # K=2 components
-        T = 200
+        T = 100
         # n_samples = 15
         n_samples = 10
         # n_epochs = 100
-        n_epochs = 1
+        n_epochs = 10
         entropy_const = 1e0
         entropy_step_v = 100
         temperature = .1
         elite = True
         v_scalar_init = 2
         # K = 16
-        K = 8
+        K = 2
         best_frac = 0.2
         init_mu_mu = np.zeros(2)
         init_cov_diag = np.ones(2)

@@ -50,8 +50,6 @@ def run_task(snapshot_config, *_):
         # s_rot = 4.
         s_trans = 200.
         s_rot = 4.
-        # s_trans = 1.
-        # s_rot = 1.
         S0_init = np.diag(np.array([s_trans, s_trans, s_trans, s_rot, s_rot, s_rot]))
         M_d_x = yumiKin.get_cart_intertia_d(INIT)
         M_d = np.diag(M_d_x)
@@ -70,15 +68,15 @@ def run_task(snapshot_config, *_):
         SD_mat_init['v'] = 30.
         # SD_mat_init['v'] = 8.
         SD_mat_init['local_scale'] = 4.
-        # SD_mat_init['local_scale'] = 1.
 
         n_samples = 15  # number of samples in an epoch in CEM
-        n_epochs = 100
+        n_epochs = 50
         entropy_const = 1.0e1
         v_scalar_init = 20
         # v_scalar_init = 2
         K = 2
         best_frac = 0.2
+        # best_frac = 0.1
         init_cov_diag = init_mu_cov_diag
         elite = True
         temperature = .1
@@ -135,12 +133,13 @@ run_experiment(
     plot=True,
     # exp_name='mod_cem_block_KH_10e-2_10',
     # exp_name='10',
-    exp_name='1',
-    # exp_prefix='mod_cem_block_KH_20e-2_ns_20',
+    exp_name='3',
+    # exp_prefix='mod_cem_block_temp',
     # exp_prefix='peg_winit_partial_imped',
     # exp_prefix='peg_winit_full_imped',
     # exp_prefix='peg_random_init_pos_itr50',
-    exp_prefix='peg_random_init_pos_itr0',
+    # exp_prefix='peg-woinit-ro15-beta10-Stinit200-Srinit4-initpos2',
+    exp_prefix='temp',
 
 
     log_dir=None,

@@ -7,8 +7,11 @@ from gym.envs.mujoco.block2D import GOAL
 from utils import iMOGIC_energy_block_vec, iMOGIC_energy_blocks
 
 base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local'
+
 prefix = 'blocks-initpos1-K1'
+# prefix = 'exp'
 exp_name = '4'
+
 # prefix = 'test'
 # exp_name = '1'
 
@@ -133,65 +136,65 @@ ax.plot(success_stat)
 
 # plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0.1, hspace=0.1)
 
-epoch = exp_log[0]
-obs0 = epoch[0]['observations']
-pos0 = obs0[:,:2] - GOAL
-T = pos0.shape[0]
-vel0 = np.zeros((T,2))
-param_ep = exp_param[0]
-param0 = param_ep['epoc_params'][0]
-K = len(param0[2])
-
-U = 30
-V = 30
-s1 = np.linspace(-0.2, 0.2, U)
-s2 = np.linspace(-0.7, 0.1, V)
-S1, S2 = np.meshgrid(s1, s2)
-F = np.zeros((U,V))
-for i in range(U):
-    for j in range(V):
-        S = np.array([S1[i,j], S2[i,j]])
-        S_dot = np.zeros(2)
-        F[i,j] = iMOGIC_energy_blocks(S, S_dot, param0, K, M=2)
-
-v0 = iMOGIC_energy_block_vec(pos0, vel0, param0, K, M=2)
-fig = plt.figure()
-ax = fig.add_subplot(1, 2, 1, projection='3d')
-# ax.contour3D(S1, S2, F, 50, cmap='viridis')
-ax.plot_wireframe(S1, S2, F, alpha=.7,label='Energy function')
-# ax.plot_surface(S1, S2, F,
-#                 cmap='viridis', edgecolor='none',alpha=0.7)
-ax.plot3D(pos0[:,0], pos0[:,1], v0, color='g',linewidth=3,label='Traj sample')
-ax.set_xlabel('s1')
-ax.set_ylabel('s2')
-ax.set_zlabel('v')
+# epoch = exp_log[0]
+# obs0 = epoch[0]['observations']
+# pos0 = obs0[:,:2] - GOAL
+# T = pos0.shape[0]
+# vel0 = np.zeros((T,2))
+# param_ep = exp_param[0]
+# param0 = param_ep['epoc_params'][0]
+# K = len(param0[2])
+#
+# U = 30
+# V = 30
+# s1 = np.linspace(-0.2, 0.2, U)
+# s2 = np.linspace(-0.7, 0.1, V)
+# S1, S2 = np.meshgrid(s1, s2)
+# F = np.zeros((U,V))
+# for i in range(U):
+#     for j in range(V):
+#         S = np.array([S1[i,j], S2[i,j]])
+#         S_dot = np.zeros(2)
+#         F[i,j] = iMOGIC_energy_blocks(S, S_dot, param0, K, M=2)
+#
+# v0 = iMOGIC_energy_block_vec(pos0, vel0, param0, K, M=2)
+# fig = plt.figure()
+# ax = fig.add_subplot(1, 2, 1, projection='3d')
+# # ax.contour3D(S1, S2, F, 50, cmap='viridis')
+# ax.plot_wireframe(S1, S2, F, alpha=.7,label='Energy function')
+# # ax.plot_surface(S1, S2, F,
+# #                 cmap='viridis', edgecolor='none',alpha=0.7)
+# ax.plot3D(pos0[:,0], pos0[:,1], v0, color='g',linewidth=3,label='Traj sample')
+# ax.set_xlabel('s1')
+# ax.set_ylabel('s2')
+# ax.set_zlabel('v')
+# # ax.legend()
+#
+#
+# final_sample = 0
+# epoch = exp_log[-1]
+# obsl = epoch[final_sample]['observations']
+# posl = obsl[:,:2] - GOAL
+# param_ep = exp_param[-1]
+# paraml = param_ep['epoc_params'][final_sample]
+# F = np.zeros((U,V))
+# for i in range(U):
+#     for j in range(V):
+#         S = np.array([S1[i,j], S2[i,j]])
+#         S_dot = np.zeros(2)
+#         F[i,j] = iMOGIC_energy_blocks(S, S_dot, paraml, K, M=2)
+# vl = iMOGIC_energy_block_vec(posl, vel0, paraml, K, M=2)
+# ax = fig.add_subplot(1, 2, 2, projection='3d')
+# ax.plot_wireframe(S1, S2, F, alpha=.7,label='Energy function')
+# # ax.contour3D(S1, S2, F, 50, cmap='viridis')
+# # ax.plot_surface(S1, S2, F,
+# #                 cmap=cm.coolwarm, edgecolor='none',alpha=1,linewidth=2)
+# ax.plot3D(posl[:,0], posl[:,1], vl, color='g', linewidth=3, label='Traj sample')
+# ax.set_xlabel('s1')
+# ax.set_ylabel('s2')
+# ax.set_zlabel('v')
 # ax.legend()
-
-
-final_sample = 0
-epoch = exp_log[-1]
-obsl = epoch[final_sample]['observations']
-posl = obsl[:,:2] - GOAL
-param_ep = exp_param[-1]
-paraml = param_ep['epoc_params'][final_sample]
-F = np.zeros((U,V))
-for i in range(U):
-    for j in range(V):
-        S = np.array([S1[i,j], S2[i,j]])
-        S_dot = np.zeros(2)
-        F[i,j] = iMOGIC_energy_blocks(S, S_dot, paraml, K, M=2)
-vl = iMOGIC_energy_block_vec(posl, vel0, paraml, K, M=2)
-ax = fig.add_subplot(1, 2, 2, projection='3d')
-ax.plot_wireframe(S1, S2, F, alpha=.7,label='Energy function')
-# ax.contour3D(S1, S2, F, 50, cmap='viridis')
-# ax.plot_surface(S1, S2, F,
-#                 cmap=cm.coolwarm, edgecolor='none',alpha=1,linewidth=2)
-ax.plot3D(posl[:,0], posl[:,1], vl, color='g', linewidth=3, label='Traj sample')
-ax.set_xlabel('s1')
-ax.set_ylabel('s2')
-ax.set_zlabel('v')
-ax.legend()
-plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+# plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
 plt.show()
 
 

@@ -29,15 +29,15 @@ k1-4
 
 base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local/blocks-initpos'
 prefix = 'blocks-initpos2-K'
-# task_list = ['1','2','3']
-task_list = ['2']
+task_list = ['1','2','3']
+# task_list = ['2']
 # task_list = ['3','2','1']
-# K_list = ['1','8','16']
-K_list = ['8']
-# exp_name = ['4','2','1']
-exp_name = ['2']
-# col = ['g','b','m']
-col = ['b']
+K_list = ['1','8','16']
+# K_list = ['8']
+exp_name = ['4','2','1']
+# exp_name = ['2']
+col = ['g','b','m']
+# col = ['b']
 
 # plt.rcParams["figure.figsize"] = (3,6)
 plt.rcParams["figure.figsize"] = (6,2)
@@ -105,4 +105,4 @@ for i in range(len(K_list)):
 plt.show()
 # fig.savefig("pos2_comparison.pdf", bbox_inches='tight',pad_inches=0.0)
 # fig.savefig("block_all_tasks_2.pdf")
-fig.savefig("block_all_tasks_rss.pdf")
+# fig.savefig("block_all_tasks_rss.pdf")
