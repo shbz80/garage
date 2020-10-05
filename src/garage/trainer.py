@@ -12,6 +12,7 @@ from garage.experiment.deterministic import get_seed, set_seed
 from garage.experiment.snapshotter import Snapshotter
 from garage.sampler.default_worker import DefaultWorker
 from garage.sampler.worker_factory import WorkerFactory
+import torch
 
 # pylint: disable=no-name-in-module
 
@@ -146,7 +147,7 @@ class Trainer:
         self._start_time = None
         self._itr_start_time = None
         self.step_itr = None
-        self.step_episode = None
+        self.step_path = None
 
         # only used for off-policy algorithms
         self.enable_logging = True
@@ -525,7 +526,7 @@ class Trainer:
         management. It is used inside train() in each algorithm.
 
         The generator initializes two variables: `self.step_itr` and
-        `self.step_episode`. To use the generator, these two have to be
+        `self.step_path`. To use the generator, these two have to be
         updated manually in each epoch, as the example shows below.
 
         Yields:
@@ -533,7 +534,7 @@ class Trainer:
 
         Examples:
             for epoch in trainer.step_epochs():
-                trainer.step_episode = trainer.obtain_samples(...)
+                trainer.step_path = trainer.obtain_samples(...)
                 self.train_once(...)
                 trainer.step_itr += 1
 
@@ -541,7 +542,7 @@ class Trainer:
         self._start_worker()
         self._start_time = time.time()
         self.step_itr = self._stats.total_itr
-        self.step_episode = None
+        self.step_path = None
 
         # Used by integration tests to ensure examples can run one epoch.
         n_epochs = int(
@@ -554,13 +555,14 @@ class Trainer:
             self._itr_start_time = time.time()
             with logger.prefix('epoch #%d | ' % epoch):
                 yield epoch
-                save_episode = (self.step_episode
+                # save_episode = (self.step_episode
+                #                 if self._train_args.store_episodes else None)
+                save_episode = (self.step_path
                                 if self._train_args.store_episodes else None)
-
                 self._stats.last_episode = save_episode
                 self._stats.total_epoch = epoch
                 self._stats.total_itr = self.step_itr
-
+                # print('init_std',torch.exp(self._algo.policy._module._init_std))
                 self.save(epoch)
 
                 if self.enable_logging:
