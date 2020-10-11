@@ -373,7 +373,7 @@ def wrap_experiment(function=None,
                     name=None,
                     snapshot_mode='last',
                     snapshot_gap=1,
-                    archive_launch_repo=True,
+                    archive_launch_repo=False, #todo
                     name_parameters=None,
                     use_existing_dir=False):
     """Decorate a function to turn it into an ExperimentTemplate.
