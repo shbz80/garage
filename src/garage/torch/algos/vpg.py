@@ -10,9 +10,11 @@ import torch.nn.functional as F
 from garage import EpisodeBatch, log_performance
 from garage.np import discount_cumsum
 from garage.np.algos import RLAlgorithm
-from garage.sampler import RaySampler
+from garage.sampler import RaySampler, LocalSampler
 from garage.torch import compute_advantages, filter_valids, pad_to_last
 from garage.torch.optimizers import OptimizerWrapper
+from garage.torch.value_functions.gaussian_mlp_value_function import GaussianMLPValueFunction
+from garage.np.baselines.linear_feature_baseline import LinearFeatureBaseline
 
 
 class VPG(RLAlgorithm):
@@ -92,16 +94,18 @@ class VPG(RLAlgorithm):
                                           policy_ent_coeff)
         self._episode_reward_mean = collections.deque(maxlen=100)
         self.sampler_cls = RaySampler
+        # self.sampler_cls = LocalSampler
 
         if policy_optimizer:
             self._policy_optimizer = policy_optimizer
         else:
             self._policy_optimizer = OptimizerWrapper(torch.optim.Adam, policy)
-        if vf_optimizer:
-            self._vf_optimizer = vf_optimizer
-        else:
-            self._vf_optimizer = OptimizerWrapper(torch.optim.Adam,
-                                                  value_function)
+        if type(self._value_function) is not LinearFeatureBaseline:
+            if vf_optimizer:
+                self._vf_optimizer = vf_optimizer
+            else:
+                self._vf_optimizer = OptimizerWrapper(torch.optim.Adam,
+                                                      value_function)
 
         self._old_policy = copy.deepcopy(self.policy)
 
@@ -159,8 +163,11 @@ class VPG(RLAlgorithm):
         with torch.no_grad():
             policy_loss_before = self._compute_loss_with_adv(
                 obs_flat, actions_flat, rewards_flat, advs_flat)
-            vf_loss_before = self._value_function.compute_loss(
-                obs_flat, returns_flat)
+        if type(self._value_function) is not LinearFeatureBaseline:
+            with torch.no_grad():
+                vf_loss_before = self._value_function.compute_loss(
+                    obs_flat, returns_flat)
+        with torch.no_grad():
             kl_before = self._compute_kl_constraint(obs)
 
         self._train(obs_flat, actions_flat, rewards_flat, returns_flat,
@@ -169,8 +176,11 @@ class VPG(RLAlgorithm):
         with torch.no_grad():
             policy_loss_after = self._compute_loss_with_adv(
                 obs_flat, actions_flat, rewards_flat, advs_flat)
-            vf_loss_after = self._value_function.compute_loss(
-                obs_flat, returns_flat)
+        if type(self._value_function) is not LinearFeatureBaseline:
+            with torch.no_grad():
+                vf_loss_after = self._value_function.compute_loss(
+                    obs_flat, returns_flat)
+        with torch.no_grad():
             kl_after = self._compute_kl_constraint(obs)
             policy_entropy = self._compute_policy_entropy(obs)
 
@@ -183,11 +193,12 @@ class VPG(RLAlgorithm):
             tabular.record('/KL', kl_after.item())
             tabular.record('/Entropy', policy_entropy.mean().item())
 
-        with tabular.prefix(self._value_function.name):
-            tabular.record('/LossBefore', vf_loss_before.item())
-            tabular.record('/LossAfter', vf_loss_after.item())
-            tabular.record('/dLoss',
-                           vf_loss_before.item() - vf_loss_after.item())
+        if type(self._value_function) is not LinearFeatureBaseline:
+            with tabular.prefix(self._value_function.name):
+                tabular.record('/LossBefore', vf_loss_before.item())
+                tabular.record('/LossAfter', vf_loss_after.item())
+                tabular.record('/dLoss',
+                               vf_loss_before.item() - vf_loss_after.item())
 
         self._old_policy.load_state_dict(self.policy.state_dict())
 
@@ -237,8 +248,25 @@ class VPG(RLAlgorithm):
         for dataset in self._policy_optimizer.get_minibatch(
                 obs, actions, rewards, advs):
             self._train_policy(*dataset)
-        for dataset in self._vf_optimizer.get_minibatch(obs, returns):
-            self._train_value_function(*dataset)
+        if type(self._value_function)==GaussianMLPValueFunction:
+            for dataset in self._vf_optimizer.get_minibatch(obs, returns):
+                self._train_value_function(*dataset)
+        elif type(self._value_function==LinearFeatureBaseline):
+            T = self.max_episode_length
+            assert(obs.shape[0]%T==0)
+            S = obs.shape[0]//T
+            O = obs.view(S, T, -1).numpy()
+            Rd = rewards.view(S,T).numpy()
+            Rt = returns.view(S, T).numpy()
+
+            paths = [
+                dict({'observations': O[s,:,:], 'rewards': Rd[s], 'returns': Rt[s]})
+                for s in range(S)
+            ]
+            self._value_function.fit(paths)
+        else:
+            raise NotImplementedError
+
 
     def _train_policy(self, obs, actions, rewards, advantages):
         r"""Train the policy.
@@ -485,7 +513,19 @@ class VPG(RLAlgorithm):
             pad_to_last(discount_cumsum(path['rewards'], self.discount).copy(),
                         total_length=self.max_episode_length) for path in paths
         ])
-        with torch.no_grad():
-            baselines = self._value_function(obs)
-
+        if type(self._value_function)==GaussianMLPValueFunction:
+            with torch.no_grad():
+                baselines = self._value_function(obs)
+        elif type(self._value_function==LinearFeatureBaseline):
+            baselines = torch.stack([
+                pad_to_last(self._value_function.predict(path),
+                            total_length=self.max_episode_length,
+                            axis=0) for path in paths
+            ])
+            # baselines = torch.stack([
+            #     self._value_function.predict(path)
+            #     for path in paths
+            # ])
+        else:
+            raise NotImplementedError
         return obs, actions, rewards, returns, valids, baselines

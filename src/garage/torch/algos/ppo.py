@@ -3,7 +3,7 @@ import torch
 
 from garage.torch.algos import VPG
 from garage.torch.optimizers import OptimizerWrapper
-
+from garage.np.baselines.linear_feature_baseline import LinearFeatureBaseline
 
 class PPO(VPG):
     """Proximal Policy Optimization (PPO).
@@ -66,7 +66,7 @@ class PPO(VPG):
                 policy,
                 max_optimization_epochs=10,
                 minibatch_size=64)
-        if vf_optimizer is None:
+        if (vf_optimizer is None) and (type(value_function) is not LinearFeatureBaseline):
             vf_optimizer = OptimizerWrapper(
                 (torch.optim.Adam, dict(lr=2.5e-4)),
                 value_function,
