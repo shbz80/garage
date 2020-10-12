@@ -4,6 +4,7 @@ import os
 import time
 import pickle
 import copy
+import numpy as np
 
 from dowel import logger, tabular
 

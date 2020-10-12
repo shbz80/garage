@@ -6,11 +6,12 @@ import numpy as np
 from gym.envs.mujoco.block2D import GOAL
 from utils import iMOGIC_energy_block_vec, iMOGIC_energy_blocks
 
-base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local'
+# base_np_filename = '/home/shahbaz/Software/garage/examples/np/data/local'
+base_np_filename = '/home/shahbaz/Software/garage/examples/torch/data/local'
 
-prefix = 'blocks-initpos1-K1'
+exp_name = 'ppo_block_2d'
 # prefix = 'exp'
-exp_name = '4'
+prefix = 'v35'
 
 # prefix = 'test'
 # exp_name = '1'
@@ -20,10 +21,10 @@ infile = open(filename, 'rb')
 exp_log = pickle.load(infile)
 infile.close()
 
-filename = base_np_filename + '/' + prefix + '/' + exp_name + '/' + 'exp_param.pkl'
-infile = open(filename, 'rb')
-exp_param = pickle.load(infile)
-infile.close()
+# filename = base_np_filename + '/' + prefix + '/' + exp_name + '/' + 'exp_param.pkl'
+# infile = open(filename, 'rb')
+# exp_param = pickle.load(infile)
+# infile.close()
 
 epoch_num = len(exp_log)
 sample_num = len(exp_log[0])
@@ -32,7 +33,7 @@ tm = range(T)
 # GOAL = np.array([0.4, -0.1])
 SUCCESS_DIST = 0.025
 plot_skip = 20
-plot_traj = False
+plot_traj = True
 
 for ep in range(epoch_num):
     if ((ep==0) or (not ((ep+1) % plot_skip))) and plot_traj:
@@ -41,16 +42,16 @@ for ep in range(epoch_num):
         act0 = epoch[0]['actions']
         rwd_s0 = epoch[0]['env_infos']['reward_dist']
         rwd_a0 = epoch[0]['env_infos']['reward_ctrl']
-        param_ep = exp_param[ep]
-        param0 = param_ep['epoc_params'][0]
-        K = len(param0[2])
-        eng0 = iMOGIC_energy_block_vec(obs0[:,:2]-GOAL, obs0[:,2:4], param0, K, M=2)
+        # param_ep = exp_param[ep]
+        # param0 = param_ep['epoc_params'][0]
+        # K = len(param0[2])
+        # eng0 = iMOGIC_energy_block_vec(obs0[:,:2]-GOAL, obs0[:,2:4], param0, K, M=2)
         pos = obs0[:,:2].reshape(T,1,2)
         vel = obs0[:,2:4].reshape(T,1,2)
         act = act0.reshape(T,1,2)
         rwd_s = rwd_s0.reshape(T,1)
         rwd_a = rwd_a0.reshape(T,1)
-        eng = eng0.reshape(T,1)
+        # eng = eng0.reshape(T,1)
 
 
         cum_rwd_s_epoch = 0
@@ -65,16 +66,16 @@ for ep in range(epoch_num):
             cum_rwd_s_epoch = cum_rwd_s_epoch + np.sum(rs.reshape(-1))
             ra = sample['env_infos']['reward_ctrl'].reshape(T, 1)
             cum_rwd_a_epoch = cum_rwd_a_epoch + np.sum(ra.reshape(-1))
-            param_ep = exp_param[ep]
-            param_sp = param_ep['epoc_params'][sp]
-            K = len(param_sp[2])
-            e = iMOGIC_energy_block_vec(sample['observations'][:,:2]-GOAL, sample['observations'][:,2:4], param_sp, K, M=2).reshape(T,1)
+            # param_ep = exp_param[ep]
+            # param_sp = param_ep['epoc_params'][sp]
+            # K = len(param_sp[2])
+            # e = iMOGIC_energy_block_vec(sample['observations'][:,:2]-GOAL, sample['observations'][:,2:4], param_sp, K, M=2).reshape(T,1)
             pos = np.concatenate((pos,p), axis=1)
             vel = np.concatenate((vel, v), axis=1)
             act = np.concatenate((act, a), axis=1)
             rwd_s = np.concatenate((rwd_s, rs), axis=1)
             rwd_a = np.concatenate((rwd_a, ra), axis=1)
-            eng = np.concatenate((eng, e), axis=1)
+            # eng = np.concatenate((eng, e), axis=1)
 
         fig = plt.figure()
         plt.title('Epoch '+str(ep))
@@ -103,9 +104,9 @@ for ep in range(epoch_num):
         ax = fig.add_subplot(3, 4, 8)
         ax.set_title('ra')
         ax.plot(tm, rwd_a, color='c')
-        ax = fig.add_subplot(3, 4, 9)
-        ax.set_title('energy')
-        ax.plot(tm, eng, color='r')
+        # ax = fig.add_subplot(3, 4, 9)
+        # ax.set_title('energy')
+        # ax.plot(tm, eng, color='r')
 
 rewards_disc_rtn = np.zeros(epoch_num)
 rewards_undisc_mean = np.zeros(epoch_num)
@@ -113,7 +114,7 @@ rewards_undisc_std = np.zeros(epoch_num)
 success_mat = np.zeros((epoch_num, sample_num))
 for ep in range(epoch_num):
     epoch = exp_log[ep]
-    rewards_disc_rtn[ep] = np.mean([epoch[s]['returns'][0] for s in range(sample_num)])
+    # rewards_disc_rtn[ep] = np.mean([epoch[s]['returns'][0] for s in range(sample_num)])
     rewards_undisc_mean[ep] = np.mean([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
     rewards_undisc_std[ep] = np.std([np.sum(epoch[s]['rewards']) for s in range(sample_num)])
     for s in range(sample_num):

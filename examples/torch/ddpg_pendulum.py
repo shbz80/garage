@@ -63,11 +63,12 @@ def run_task(snapshot_config, *_):
 
     runner.setup(algo=ddpg, env=env)
 
-    runner.train(n_epochs=500, n_epoch_cycles=20, batch_size=100)
+    runner.train(n_epochs=500, n_epoch_cycles=20, batch_size=100, plot=True)
 
 
 run_experiment(
     run_task,
     snapshot_mode='last',
     seed=1,
+    plot=True
 )

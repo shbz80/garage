@@ -41,7 +41,7 @@ def run_task(snapshot_config, *_):
                center_adv=False)
 
     runner.setup(algo, env)
-    runner.train(n_epochs=100, batch_size=10000)
+    runner.train(n_epochs=100, batch_size=2048)
 
 
 run_experiment(

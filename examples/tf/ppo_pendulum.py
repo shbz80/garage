@@ -17,6 +17,7 @@ from garage.envs import normalize
 from garage.experiment import run_experiment
 from garage.tf.algos import PPO
 from garage.tf.baselines import GaussianMLPBaseline
+from garage.np.baselines import LinearFeatureBaseline
 from garage.tf.envs import TfEnv
 from garage.tf.experiment import LocalTFRunner
 from garage.tf.policies import GaussianMLPPolicy
@@ -34,14 +35,14 @@ def run_task(snapshot_config, *_):
             output_nonlinearity=None,
         )
 
-        baseline = GaussianMLPBaseline(
-            env_spec=env.spec,
-            regressor_args=dict(
-                hidden_sizes=(32, 32),
-                use_trust_region=True,
-            ),
-        )
-
+        # baseline = GaussianMLPBaseline(
+        #     env_spec=env.spec,
+        #     regressor_args=dict(
+        #         hidden_sizes=(32, 32),
+        #         use_trust_region=True,
+        #     ),
+        # )
+        baseline = LinearFeatureBaseline(env_spec=env.spec)
         # NOTE: make sure when setting entropy_method to 'max', set
         # center_adv to False and turn off policy gradient. See
         # tf.algos.NPO for detailed documentation.
@@ -65,7 +66,7 @@ def run_task(snapshot_config, *_):
 
         runner.setup(algo, env)
 
-        runner.train(n_epochs=120, batch_size=2048, plot=True)
+        runner.train(n_epochs=100, batch_size=2048, plot=False)
 
 
-run_experiment(run_task, snapshot_mode='last', seed=1, plot=True)
+run_experiment(run_task, snapshot_mode='last', seed=1)
