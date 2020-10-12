@@ -94,7 +94,7 @@ class VPG(RLAlgorithm):
                                           policy_ent_coeff)
         self._episode_reward_mean = collections.deque(maxlen=100)
         self.sampler_cls = RaySampler
-        # self.sampler_cls = LocalSampler
+        # self.sampler_cls = LocalSampler # todo
 
         if policy_optimizer:
             self._policy_optimizer = policy_optimizer
