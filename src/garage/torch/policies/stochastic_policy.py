@@ -80,10 +80,14 @@ class StochasticPolicy(Policy, abc.ABC):
             if isinstance(self._env_spec.observation_space, akro.Image):
                 observations /= 255.0  # scale image
             dist, info = self.forward(observations)
-            return dist.sample().cpu().numpy(), {
+            return dist.sample().cpu().numpy(), { #todo
                 k: v.detach().cpu().numpy()
                 for (k, v) in info.items()
             }
+        # return dist.mean.cpu().numpy(), {
+        #     k: v.detach().cpu().numpy()
+        #     for (k, v) in info.items()
+        # }
 
     # pylint: disable=arguments-differ
     @abc.abstractmethod
