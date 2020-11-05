@@ -6,7 +6,7 @@ from dowel import tabular
 import numpy as np
 import torch
 import torch.nn.functional as F
-
+import time
 from garage import EpisodeBatch, log_performance
 from garage.np import discount_cumsum
 from garage.np.algos import RLAlgorithm
@@ -170,9 +170,10 @@ class VPG(RLAlgorithm):
         with torch.no_grad():
             kl_before = self._compute_kl_constraint(obs)
 
+        st_time = time.time()
         self._train(obs_flat, actions_flat, rewards_flat, returns_flat,
                     advs_flat)
-
+        print('Training time:',time.time()-st_time)
         with torch.no_grad():
             policy_loss_after = self._compute_loss_with_adv(
                 obs_flat, actions_flat, rewards_flat, advs_flat)
