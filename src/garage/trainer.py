@@ -12,6 +12,7 @@ from garage.experiment.deterministic import get_seed, set_seed
 from garage.experiment.snapshotter import Snapshotter
 from garage.sampler.default_worker import DefaultWorker
 from garage.sampler.worker_factory import WorkerFactory
+from gps.agent.ros.agent_ros import AgentROS
 import torch
 
 # pylint: disable=no-name-in-module
@@ -222,6 +223,7 @@ class Trainer:
               algo,
               env,
               sampler_cls=None,
+              sampler_=None,
               sampler_args=None,
               n_workers=psutil.cpu_count(logical=False),
               worker_class=None,
@@ -239,6 +241,7 @@ class Trainer:
             algo (RLAlgorithm): An algorithm instance.
             env (Environment): An environment instance.
             sampler_cls (type): A class which implements :class:`Sampler`.
+            sampler_(type): a custom sampler that is already initialized.
             sampler_args (dict): Arguments to be passed to sampler constructor.
             n_workers (int): The number of workers the sampler should use.
             worker_class (type): Type of worker the sampler should use.
@@ -266,13 +269,14 @@ class Trainer:
         self._worker_args = worker_args
         if sampler_cls is None:
             self._sampler = None
+        elif sampler_cls==AgentROS:
+            self._sampler = sampler_cls(sampler_args,self._algo.policy, self._algo._env_spec)
         else:
             self._sampler = self.make_sampler(sampler_cls,
                                               sampler_args=sampler_args,
                                               n_workers=n_workers,
                                               worker_class=worker_class,
                                               worker_args=worker_args)
-
         self._has_setup = True
 
         self._setup_args = SetupArgs(sampler_cls=sampler_cls,

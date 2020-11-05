@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from garage import EpisodeBatch, log_performance
 from garage.np import discount_cumsum
 from garage.np.algos import RLAlgorithm
-from garage.sampler import RaySampler, LocalSampler
+from garage.sampler import RaySampler
 from garage.torch import compute_advantages, filter_valids, pad_to_last
 from garage.torch.optimizers import OptimizerWrapper
 from garage.torch.value_functions.gaussian_mlp_value_function import GaussianMLPValueFunction
@@ -94,7 +94,6 @@ class VPG(RLAlgorithm):
                                           policy_ent_coeff)
         self._episode_reward_mean = collections.deque(maxlen=100)
         self.sampler_cls = RaySampler
-        # self.sampler_cls = LocalSampler # todo
 
         if policy_optimizer:
             self._policy_optimizer = policy_optimizer
@@ -147,7 +146,7 @@ class VPG(RLAlgorithm):
             numpy.float64: Calculated mean value of undiscounted returns.
 
         """
-        obs, actions, rewards, returns, valids, baselines = \
+        obs, actions, rewards, returns, valids, baselines, paths = \
             self._process_samples(paths)
 
         if self._maximum_entropy:
@@ -171,7 +170,7 @@ class VPG(RLAlgorithm):
             kl_before = self._compute_kl_constraint(obs)
 
         self._train(obs_flat, actions_flat, rewards_flat, returns_flat,
-                    advs_flat)
+                    advs_flat, paths)
 
         with torch.no_grad():
             policy_loss_after = self._compute_loss_with_adv(
@@ -231,7 +230,7 @@ class VPG(RLAlgorithm):
 
         return last_return
 
-    def _train(self, obs, actions, rewards, returns, advs):
+    def _train(self, obs, actions, rewards, returns, advs, paths=None):
         r"""Train the policy and value function with minibatch.
 
         Args:
@@ -252,17 +251,19 @@ class VPG(RLAlgorithm):
             for dataset in self._vf_optimizer.get_minibatch(obs, returns):
                 self._train_value_function(*dataset)
         elif type(self._value_function==LinearFeatureBaseline):
-            T = self.max_episode_length
-            assert(obs.shape[0]%T==0)
-            S = obs.shape[0]//T
-            O = obs.view(S, T, -1).numpy()
-            Rd = rewards.view(S,T).numpy()
-            Rt = returns.view(S, T).numpy()
+            assert(paths is not None)
+        #     T = self.max_episode_length
+        #     assert(obs.shape[0]%T==0)
+        #     S = obs.shape[0]//T
+        #     O = obs.view(S, T, -1).numpy()
+        #     Rd = rewards.view(S,T).numpy()
+        #     Rt = returns.view(S, T).numpy()
+        #
+        #     paths = [
+        #         dict({'observations': O[s,:,:], 'rewards': Rd[s], 'returns': Rt[s]})
+        #         for s in range(S)
+        #     ]
 
-            paths = [
-                dict({'observations': O[s,:,:], 'rewards': Rd[s], 'returns': Rt[s]})
-                for s in range(S)
-            ]
             self._value_function.fit(paths)
         else:
             raise NotImplementedError
@@ -513,6 +514,8 @@ class VPG(RLAlgorithm):
             pad_to_last(discount_cumsum(path['rewards'], self.discount).copy(),
                         total_length=self.max_episode_length) for path in paths
         ])
+        for path in paths:
+            path['returns'] = discount_cumsum(path['rewards'], self.discount).copy()
         if type(self._value_function)==GaussianMLPValueFunction:
             with torch.no_grad():
                 baselines = self._value_function(obs)
@@ -528,4 +531,4 @@ class VPG(RLAlgorithm):
             # ])
         else:
             raise NotImplementedError
-        return obs, actions, rewards, returns, valids, baselines
+        return obs, actions, rewards, returns, valids, baselines, paths
