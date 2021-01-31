@@ -15,6 +15,9 @@ from garage.torch import compute_advantages, filter_valids, pad_to_last
 from garage.torch.optimizers import OptimizerWrapper
 from garage.torch.value_functions.gaussian_mlp_value_function import GaussianMLPValueFunction
 from garage.np.baselines.linear_feature_baseline import LinearFeatureBaseline
+from energybased_sac.policies.gaussian_ps_mlp_policy import GaussianPSMLPPolicy
+from energybased_sac.policies.energy_based_control_policy import GaussianEnergyBasedPolicy
+from energybased_sac.utilities.param_exp import perturbTorchPolicyBatch
 
 
 class VPG(RLAlgorithm):
@@ -94,7 +97,6 @@ class VPG(RLAlgorithm):
                                           policy_ent_coeff)
         self._episode_reward_mean = collections.deque(maxlen=100)
         self.sampler_cls = RaySampler
-        # self.sampler_cls = LocalSampler # todo
 
         if policy_optimizer:
             self._policy_optimizer = policy_optimizer
@@ -170,7 +172,6 @@ class VPG(RLAlgorithm):
         with torch.no_grad():
             kl_before = self._compute_kl_constraint(obs)
 
-        st_time = time.time()
         self._train(obs_flat, actions_flat, rewards_flat, returns_flat,
                     advs_flat)
         print('Training time:',time.time()-st_time)
@@ -225,9 +226,20 @@ class VPG(RLAlgorithm):
 
         for _ in trainer.step_epochs():
             for _ in range(self._n_samples):
-                trainer.step_path = trainer.obtain_samples(trainer.step_itr)
+                agent_update = None
+                if isinstance(self.policy, (GaussianPSMLPPolicy, GaussianEnergyBasedPolicy)):
+                    agent_update = perturbTorchPolicyBatch(self.policy,
+                                                           self.policy._module._init_std.detach().exp(),
+                                                           trainer._n_workers)
+                st_time = time.time()
+                trainer.step_path = trainer.obtain_samples(trainer.step_itr,
+                                                           agent_update=agent_update)
+                print('Iteration sampling time:', time.time() - st_time)
+                st_time = time.time()
                 last_return = self._train_once(trainer.step_itr,
                                                trainer.step_path)
+                print('Iteration training time:', time.time() - st_time)
+                print('Std parameter:', self.policy._module._init_std)
                 trainer.step_itr += 1
 
         return last_return
