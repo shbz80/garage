@@ -75,7 +75,8 @@ def maml_ppo_half_cheetah_dir(ctxt, seed, epochs, episodes_per_task,
 
     trainer.setup(algo, env)
     trainer.train(n_epochs=epochs,
-                  batch_size=episodes_per_task * env.spec.max_episode_length)
+                  batch_size=episodes_per_task * env.spec.max_episode_length,
+                  plot=True)
 
 
 maml_ppo_half_cheetah_dir()

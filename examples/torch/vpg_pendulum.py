@@ -50,7 +50,7 @@ def vpg_pendulum(ctxt=None, seed=1):
                center_adv=False)
 
     trainer.setup(algo, env)
-    trainer.train(n_epochs=100, batch_size=10000)
+    trainer.train(n_epochs=100, batch_size=10000, plot=True)
 
 
 vpg_pendulum()

@@ -81,7 +81,8 @@ def rl2_ppo_halfcheetah(ctxt, seed, max_episode_length, meta_batch_size,
 
         trainer.train(n_epochs=n_epochs,
                       batch_size=episode_per_task * max_episode_length *
-                      meta_batch_size)
+                      meta_batch_size,
+                      plot=True)
 
 
 rl2_ppo_halfcheetah()

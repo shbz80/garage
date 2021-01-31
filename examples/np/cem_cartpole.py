@@ -48,4 +48,4 @@ def cem_cartpole(ctxt=None, seed=1):
         trainer.train(n_epochs=100, batch_size=1000)
 
 
-cem_cartpole(seed=1)
+cem_cartpole(seed=2)

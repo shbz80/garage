@@ -71,7 +71,7 @@ def sac_half_cheetah_batch(ctxt=None, seed=1):
         set_gpu_mode(False)
     sac.to()
     trainer.setup(algo=sac, env=env, sampler_cls=LocalSampler)
-    trainer.train(n_epochs=1000, batch_size=1000)
+    trainer.train(n_epochs=1000, plot=True, batch_size=1000)
 
 
 s = np.random.randint(0, 1000)

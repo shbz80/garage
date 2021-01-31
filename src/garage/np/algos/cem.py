@@ -44,7 +44,7 @@ class CEM(RLAlgorithm):
                  discount=0.99,
                  init_std=1,
                  best_frac=0.05,
-                 extra_std=1.,
+                 extra_std=0.,
                  extra_decay_time=100):
         self.policy = policy
         self.max_episode_length = env_spec.max_episode_length
