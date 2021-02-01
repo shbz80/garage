@@ -15,9 +15,9 @@ from garage.torch import compute_advantages, filter_valids, pad_to_last
 from garage.torch.optimizers import OptimizerWrapper
 from garage.torch.value_functions.gaussian_mlp_value_function import GaussianMLPValueFunction
 from garage.np.baselines.linear_feature_baseline import LinearFeatureBaseline
-from energybased_sac.policies.gaussian_ps_mlp_policy import GaussianPSMLPPolicy
-from energybased_sac.policies.energy_based_control_policy import GaussianEnergyBasedPolicy
-from energybased_sac.utilities.param_exp import perturbTorchPolicyBatch
+from energybased_stable_rl.policies.gaussian_ps_mlp_policy import GaussianPSMLPPolicy
+from energybased_stable_rl.policies.energy_based_control_policy import GaussianEnergyBasedPolicy
+from energybased_stable_rl.utilities.param_exp import perturbTorchPolicyBatch
 
 
 class VPG(RLAlgorithm):
