@@ -84,10 +84,10 @@ class StochasticPolicy(Policy, abc.ABC):
                 k: v.detach().cpu().numpy()
                 for (k, v) in info.items()
             }
-        # return dist.mean.cpu().numpy(), {
-        #     k: v.detach().cpu().numpy()
-        #     for (k, v) in info.items()
-        # }
+            # return dist.mean.cpu().numpy(), {
+            #     k: v.detach().cpu().numpy()
+            #     for (k, v) in info.items()
+            # }
 
     # pylint: disable=arguments-differ
     @abc.abstractmethod

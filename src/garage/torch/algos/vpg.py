@@ -162,45 +162,45 @@ class VPG(RLAlgorithm):
         returns_flat = torch.cat(filter_valids(returns, valids))
         advs_flat = self._compute_advantage(rewards, valids, baselines)
 
-        with torch.no_grad():
-            policy_loss_before = self._compute_loss_with_adv(
-                obs_flat, actions_flat, rewards_flat, advs_flat)
-        if type(self._value_function) is not LinearFeatureBaseline:
-            with torch.no_grad():
-                vf_loss_before = self._value_function.compute_loss(
-                    obs_flat, returns_flat)
-        with torch.no_grad():
-            kl_before = self._compute_kl_constraint(obs)
+        # with torch.no_grad():
+        #     policy_loss_before = self._compute_loss_with_adv(
+        #         obs_flat, actions_flat, rewards_flat, advs_flat)
+        # if type(self._value_function) is not LinearFeatureBaseline:
+        #     with torch.no_grad():
+        #         vf_loss_before = self._value_function.compute_loss(
+        #             obs_flat, returns_flat)
+        # with torch.no_grad():
+        #     kl_before = self._compute_kl_constraint(obs)
 
         self._train(obs_flat, actions_flat, rewards_flat, returns_flat,
                     advs_flat)
-        print('Training time:',time.time()-st_time)
-        with torch.no_grad():
-            policy_loss_after = self._compute_loss_with_adv(
-                obs_flat, actions_flat, rewards_flat, advs_flat)
-        if type(self._value_function) is not LinearFeatureBaseline:
-            with torch.no_grad():
-                vf_loss_after = self._value_function.compute_loss(
-                    obs_flat, returns_flat)
-        with torch.no_grad():
-            kl_after = self._compute_kl_constraint(obs)
-            policy_entropy = self._compute_policy_entropy(obs)
 
-        with tabular.prefix(self.policy.name):
-            tabular.record('/LossBefore', policy_loss_before.item())
-            tabular.record('/LossAfter', policy_loss_after.item())
-            tabular.record('/dLoss',
-                           (policy_loss_before - policy_loss_after).item())
-            tabular.record('/KLBefore', kl_before.item())
-            tabular.record('/KL', kl_after.item())
-            tabular.record('/Entropy', policy_entropy.mean().item())
-
-        if type(self._value_function) is not LinearFeatureBaseline:
-            with tabular.prefix(self._value_function.name):
-                tabular.record('/LossBefore', vf_loss_before.item())
-                tabular.record('/LossAfter', vf_loss_after.item())
-                tabular.record('/dLoss',
-                               vf_loss_before.item() - vf_loss_after.item())
+        # with torch.no_grad():
+        #     policy_loss_after = self._compute_loss_with_adv(
+        #         obs_flat, actions_flat, rewards_flat, advs_flat)
+        # if type(self._value_function) is not LinearFeatureBaseline:
+        #     with torch.no_grad():
+        #         vf_loss_after = self._value_function.compute_loss(
+        #             obs_flat, returns_flat)
+        # with torch.no_grad():
+        #     kl_after = self._compute_kl_constraint(obs)
+        #     policy_entropy = self._compute_policy_entropy(obs)
+        #
+        # with tabular.prefix(self.policy.name):
+        #     tabular.record('/LossBefore', policy_loss_before.item())
+        #     tabular.record('/LossAfter', policy_loss_after.item())
+        #     tabular.record('/dLoss',
+        #                    (policy_loss_before - policy_loss_after).item())
+        #     tabular.record('/KLBefore', kl_before.item())
+        #     tabular.record('/KL', kl_after.item())
+        #     tabular.record('/Entropy', policy_entropy.mean().item())
+        #
+        # if type(self._value_function) is not LinearFeatureBaseline:
+        #     with tabular.prefix(self._value_function.name):
+        #         tabular.record('/LossBefore', vf_loss_before.item())
+        #         tabular.record('/LossAfter', vf_loss_after.item())
+        #         tabular.record('/dLoss',
+        #                        vf_loss_before.item() - vf_loss_after.item())
 
         self._old_policy.load_state_dict(self.policy.state_dict())
 
@@ -239,7 +239,7 @@ class VPG(RLAlgorithm):
                 last_return = self._train_once(trainer.step_itr,
                                                trainer.step_path)
                 print('Iteration training time:', time.time() - st_time)
-                print('Std parameter:', self.policy._module._init_std)
+                print('Std parameter:', self.policy._module._init_std.detach().exp())
                 trainer.step_itr += 1
 
         return last_return
@@ -258,9 +258,14 @@ class VPG(RLAlgorithm):
                 :math:`(N, )`.
 
         """
+        i = 0
         for dataset in self._policy_optimizer.get_minibatch(
                 obs, actions, rewards, advs):
+            st_time = time.time()
             self._train_policy(*dataset)
+            print('Batch training time:', time.time() - st_time)
+            i = i+1
+            print('Batch number:',i)
         if type(self._value_function)==GaussianMLPValueFunction:
             for dataset in self._vf_optimizer.get_minibatch(obs, returns):
                 self._train_value_function(*dataset)
