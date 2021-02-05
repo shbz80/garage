@@ -132,6 +132,21 @@ def filter_valids(tensor, valids):
     """
     return [tensor[i][:valid] for i, valid in enumerate(valids)]
 
+def filter_valids_list(list, valids):
+    """Filter out list using valids (last index of valid list).
+
+    valids contains last indices of each rows.
+
+    Args:
+        list (list): The list to filter
+        valids (list[int]): Array of length of the valid values
+
+    Returns:
+        torch.Tensor: Filtered list
+
+    """
+    return [list[i][:valid] for i, valid in enumerate(valids)]
+
 
 def np_to_torch(array):
     """Numpy arrays to PyTorch tensors.

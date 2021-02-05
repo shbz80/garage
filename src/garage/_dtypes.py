@@ -4,7 +4,7 @@ import enum
 
 import akro
 import numpy as np
-
+import itertools
 from garage.np import concat_tensor_dict_list, slice_nested_dict
 
 # pylint: disable=too-many-lines
@@ -206,7 +206,7 @@ class EpisodeBatch(
 
         # agent_infos
         for key, val in agent_infos.items():
-            if not isinstance(val, (dict, np.ndarray)):
+            if not isinstance(val, (dict, list, np.ndarray)):   # added list todo
                 raise ValueError(
                     'Each entry in agent_infos must be a numpy array or '
                     'dictionary, but got key {} with value type {} instead.'
@@ -255,10 +255,22 @@ class EpisodeBatch(
             k: np.concatenate([b.env_infos[k] for b in batches])
             for k in batches[0].env_infos.keys()
         }
-        agent_infos = {
-            k: np.concatenate([b.agent_infos[k] for b in batches])
-            for k in batches[0].agent_infos.keys()
-        }
+        # agent_infos = {           # modification for jacobian param keys
+        #     k: np.concatenate([b.agent_infos[k] for b in batches])
+        #     for k in batches[0].agent_infos.keys()
+        # }
+
+        agent_infos = {}
+        for k in batches[0].agent_infos.keys():
+            if isinstance(batches[0].agent_infos[k], np.ndarray):
+                agent_infos[k] = np.concatenate([b.agent_infos[k] for b in batches])
+            elif isinstance(batches[0].agent_infos[k], list):
+                agent_infos[k] = list(itertools.chain.from_iterable([b.agent_infos[k] for b in batches]))
+            else:
+                assert(False)
+
+
+
         return cls(
             env_spec=batches[0].env_spec,
             observations=np.concatenate(

@@ -151,6 +151,9 @@ class DefaultWorker(Worker):
         for k, v in env_infos.items():
             env_infos[k] = np.asarray(v)
 
+        if self.agent.selected_param_key:
+            agent_infos['selected_param_key'] = [self.agent.selected_param_key for i in range(len(observations))]
+
         lengths = self._lengths
         self._lengths = []
         return EpisodeBatch(env_spec=self.env.spec,
