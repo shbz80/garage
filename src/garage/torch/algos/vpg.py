@@ -11,14 +11,11 @@ from garage import EpisodeBatch, log_performance
 from garage.np import discount_cumsum
 from garage.np.algos import RLAlgorithm
 from garage.sampler import RaySampler, LocalSampler
-from garage.torch import compute_advantages, filter_valids, pad_to_last, filter_valids_list
+from garage.torch import compute_advantages, filter_valids, pad_to_last
 from garage.torch.optimizers import OptimizerWrapper
 from garage.torch.value_functions.gaussian_mlp_value_function import GaussianMLPValueFunction
 from garage.np.baselines.linear_feature_baseline import LinearFeatureBaseline
-from energybased_stable_rl.policies.gaussian_ps_mlp_policy import GaussianPSMLPPolicy
-from energybased_stable_rl.policies.energy_based_control_policy import GaussianEnergyBasedPolicy
-from energybased_stable_rl.utilities.param_exp import perturbTorchPolicyBatch
-import itertools
+
 
 class VPG(RLAlgorithm):
     """Vanilla Policy Gradient (REINFORCE).
@@ -97,6 +94,7 @@ class VPG(RLAlgorithm):
                                           policy_ent_coeff)
         self._episode_reward_mean = collections.deque(maxlen=100)
         self.sampler_cls = RaySampler
+        # self.sampler_cls = LocalSampler # todo
 
         if policy_optimizer:
             self._policy_optimizer = policy_optimizer
@@ -149,7 +147,7 @@ class VPG(RLAlgorithm):
             numpy.float64: Calculated mean value of undiscounted returns.
 
         """
-        obs, actions, rewards, returns, valids, baselines, param_keys = \
+        obs, actions, rewards, returns, valids, baselines = \
             self._process_samples(paths)
 
         if self._maximum_entropy:
@@ -161,58 +159,55 @@ class VPG(RLAlgorithm):
         rewards_flat = torch.cat(filter_valids(rewards, valids))
         returns_flat = torch.cat(filter_valids(returns, valids))
         advs_flat = self._compute_advantage(rewards, valids, baselines)
-        param_keys_flat = list(itertools.chain.from_iterable(filter_valids_list(param_keys, valids)))
 
-        # with torch.no_grad():
-        #     policy_loss_before = self._compute_loss_with_adv(
-        #         obs_flat, actions_flat, rewards_flat, advs_flat)
-        # if type(self._value_function) is not LinearFeatureBaseline:
-        #     with torch.no_grad():
-        #         vf_loss_before = self._value_function.compute_loss(
-        #             obs_flat, returns_flat)
-        # with torch.no_grad():
-        #     kl_before = self._compute_kl_constraint(obs)
+        with torch.no_grad():
+            policy_loss_before = self._compute_loss_with_adv(
+                obs_flat, actions_flat, rewards_flat, advs_flat)
+        if type(self._value_function) is not LinearFeatureBaseline:
+            with torch.no_grad():
+                vf_loss_before = self._value_function.compute_loss(
+                    obs_flat, returns_flat)
+        with torch.no_grad():
+            kl_before = self._compute_kl_constraint(obs)
 
+        st_time = time.time()
         self._train(obs_flat, actions_flat, rewards_flat, returns_flat,
-                    advs_flat, param_keys_flat)
+                    advs_flat)
+        print('Training time:',time.time()-st_time)
+        with torch.no_grad():
+            policy_loss_after = self._compute_loss_with_adv(
+                obs_flat, actions_flat, rewards_flat, advs_flat)
+        if type(self._value_function) is not LinearFeatureBaseline:
+            with torch.no_grad():
+                vf_loss_after = self._value_function.compute_loss(
+                    obs_flat, returns_flat)
+        with torch.no_grad():
+            kl_after = self._compute_kl_constraint(obs)
+            policy_entropy = self._compute_policy_entropy(obs)
 
-        # with torch.no_grad():
-        #     policy_loss_after = self._compute_loss_with_adv(
-        #         obs_flat, actions_flat, rewards_flat, advs_flat)
-        # if type(self._value_function) is not LinearFeatureBaseline:
-        #     with torch.no_grad():
-        #         vf_loss_after = self._value_function.compute_loss(
-        #             obs_flat, returns_flat)
-        # with torch.no_grad():
-        #     kl_after = self._compute_kl_constraint(obs)
-        #     policy_entropy = self._compute_policy_entropy(obs)
-        #
-        # with tabular.prefix(self.policy.name):
-        #     tabular.record('/LossBefore', policy_loss_before.item())
-        #     tabular.record('/LossAfter', policy_loss_after.item())
-        #     tabular.record('/dLoss',
-        #                    (policy_loss_before - policy_loss_after).item())
-        #     tabular.record('/KLBefore', kl_before.item())
-        #     tabular.record('/KL', kl_after.item())
-        #     tabular.record('/Entropy', policy_entropy.mean().item())
-        #
-        # if type(self._value_function) is not LinearFeatureBaseline:
-        #     with tabular.prefix(self._value_function.name):
-        #         tabular.record('/LossBefore', vf_loss_before.item())
-        #         tabular.record('/LossAfter', vf_loss_after.item())
-        #         tabular.record('/dLoss',
-        #                        vf_loss_before.item() - vf_loss_after.item())
+        with tabular.prefix(self.policy.name):
+            tabular.record('/LossBefore', policy_loss_before.item())
+            tabular.record('/LossAfter', policy_loss_after.item())
+            tabular.record('/dLoss',
+                           (policy_loss_before - policy_loss_after).item())
+            tabular.record('/KLBefore', kl_before.item())
+            tabular.record('/KL', kl_after.item())
+            tabular.record('/Entropy', policy_entropy.mean().item())
+
+        if type(self._value_function) is not LinearFeatureBaseline:
+            with tabular.prefix(self._value_function.name):
+                tabular.record('/LossBefore', vf_loss_before.item())
+                tabular.record('/LossAfter', vf_loss_after.item())
+                tabular.record('/dLoss',
+                               vf_loss_before.item() - vf_loss_after.item())
 
         self._old_policy.load_state_dict(self.policy.state_dict())
 
-        for path in paths:
-            del path['agent_infos']['selected_param_key']
         undiscounted_returns = log_performance(itr,
                                                EpisodeBatch.from_list(
                                                    self._env_spec, paths),
                                                discount=self._discount)
         return np.mean(undiscounted_returns)
-        # return None
 
     def train(self, trainer):
         """Obtain samplers and start actual training for each epoch.
@@ -230,25 +225,14 @@ class VPG(RLAlgorithm):
 
         for _ in trainer.step_epochs():
             for _ in range(self._n_samples):
-                agent_update = None
-                if isinstance(self.policy, (GaussianPSMLPPolicy, GaussianEnergyBasedPolicy)):
-                    agent_update = perturbTorchPolicyBatch(self.policy,
-                                                           trainer._n_workers, self.policy._module.jac_batch_size)
-                st_time = time.time()
-                trainer.step_path = trainer.obtain_samples(trainer.step_itr,
-                                                           agent_update=agent_update)
-                print('Iteration sampling time:', time.time() - st_time)
-                st_time = time.time()
+                trainer.step_path = trainer.obtain_samples(trainer.step_itr)
                 last_return = self._train_once(trainer.step_itr,
                                                trainer.step_path)
-                print('Iteration training time:', time.time() - st_time)
-                param_list = [param for param in self.policy._module.named_parameters()]
-                print('Parameters:', param_list)
                 trainer.step_itr += 1
 
         return last_return
 
-    def _train(self, obs, actions, rewards, returns, advs, param_keys):
+    def _train(self, obs, actions, rewards, returns, advs):
         r"""Train the policy and value function with minibatch.
 
         Args:
@@ -262,14 +246,9 @@ class VPG(RLAlgorithm):
                 :math:`(N, )`.
 
         """
-        i = 0
         for dataset in self._policy_optimizer.get_minibatch(
-                obs, actions, rewards, advs, param_keys):
-            st_time = time.time()
+                obs, actions, rewards, advs):
             self._train_policy(*dataset)
-            # print('Batch training time:', time.time() - st_time)
-            i = i+1
-            print('Batch number:',i)
         if type(self._value_function)==GaussianMLPValueFunction:
             for dataset in self._vf_optimizer.get_minibatch(obs, returns):
                 self._train_value_function(*dataset)
@@ -290,7 +269,7 @@ class VPG(RLAlgorithm):
             raise NotImplementedError
 
 
-    def _train_policy(self, obs, actions, rewards, advantages, param_keys):
+    def _train_policy(self, obs, actions, rewards, advantages):
         r"""Train the policy.
 
         Args:
@@ -308,7 +287,7 @@ class VPG(RLAlgorithm):
 
         """
         self._policy_optimizer.zero_grad()
-        loss = self._compute_loss_with_adv(obs, actions, rewards, advantages, param_keys)
+        loss = self._compute_loss_with_adv(obs, actions, rewards, advantages)
         loss.backward()
         self._policy_optimizer.step()
 
@@ -364,7 +343,7 @@ class VPG(RLAlgorithm):
         return self._compute_loss_with_adv(obs_flat, actions_flat,
                                            rewards_flat, advantages_flat)
 
-    def _compute_loss_with_adv(self, obs, actions, rewards, advantages, param_keys):
+    def _compute_loss_with_adv(self, obs, actions, rewards, advantages):
         r"""Compute mean value of loss.
 
         Args:
@@ -381,7 +360,7 @@ class VPG(RLAlgorithm):
             torch.Tensor: Calculated negative mean scalar value of objective.
 
         """
-        objectives = self._compute_objective(advantages, obs, actions, rewards, param_keys)
+        objectives = self._compute_objective(advantages, obs, actions, rewards)
 
         if self._entropy_regularzied:
             policy_entropies = self._compute_policy_entropy(obs)
@@ -474,7 +453,7 @@ class VPG(RLAlgorithm):
 
         return policy_entropy
 
-    def _compute_objective(self, advantages, obs, actions, rewards, param_keys):
+    def _compute_objective(self, advantages, obs, actions, rewards):
         r"""Compute objective value.
 
         Args:
@@ -550,13 +529,4 @@ class VPG(RLAlgorithm):
             # ])
         else:
             raise NotImplementedError
-        batch_keys = []
-        for path in paths:
-            keys = path['agent_infos']['selected_param_key']
-            assert (self.max_episode_length >= len(keys))
-            fill_len = self.max_episode_length - len(keys)
-            for i in range(fill_len): keys.append([])
-            batch_keys.append(keys)
-
-        param_keys = list(itertools.chain(batch_keys))
-        return obs, actions, rewards, returns, valids, baselines, param_keys
+        return obs, actions, rewards, returns, valids, baselines
