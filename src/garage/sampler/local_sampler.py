@@ -31,7 +31,8 @@ class LocalSampler(Sampler):
     def __init__(self, worker_factory, agents, envs):
         # pylint: disable=super-init-not-called
         self._factory = worker_factory
-        self._agents = worker_factory.prepare_worker_messages(agents, preprocess=copy.deepcopy) # todo
+        # self._agents = worker_factory.prepare_worker_messages(agents, preprocess=copy.deepcopy) # todo
+        self._agents = worker_factory.prepare_worker_messages(agents)
         self._envs = worker_factory.prepare_worker_messages(
             envs, preprocess=copy.deepcopy)
         self._workers = [
