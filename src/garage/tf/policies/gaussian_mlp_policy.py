@@ -209,8 +209,8 @@ class GaussianMLPPolicy(GaussianMLPModel, Policy):
         samples = self.action_space.unflatten_n(np.squeeze(samples, 1))
         means = self.action_space.unflatten_n(np.squeeze(means, 1))
         log_stds = self.action_space.unflatten_n(np.squeeze(log_stds, 1))
-        # return samples, dict(mean=means, log_std=log_stds) #todo
-        return means, dict(mean=means, log_std=log_stds)
+        return samples, dict(mean=means, log_std=log_stds) #todo
+        # return means, dict(mean=means, log_std=log_stds)
 
     def clone(self, name):
         """Return a clone of the policy.
