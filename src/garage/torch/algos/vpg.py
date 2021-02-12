@@ -233,7 +233,6 @@ class VPG(RLAlgorithm):
                 agent_update = None
                 if isinstance(self.policy, (GaussianPSMLPPolicy, GaussianEnergyBasedPolicy)):
                     agent_update = perturbTorchPolicyBatch(self.policy,
-                                                           self.policy._module._init_std.detach().exp(),
                                                            trainer._n_workers, self.policy._module.jac_batch_size)
                 st_time = time.time()
                 trainer.step_path = trainer.obtain_samples(trainer.step_itr,
@@ -243,7 +242,8 @@ class VPG(RLAlgorithm):
                 last_return = self._train_once(trainer.step_itr,
                                                trainer.step_path)
                 print('Iteration training time:', time.time() - st_time)
-                print('Std parameter:', self.policy._module._init_std.detach().exp())
+                param_list = [param for param in self.policy._module.named_parameters()]
+                print('Parameters:', param_list)
                 trainer.step_itr += 1
 
         return last_return
@@ -269,7 +269,7 @@ class VPG(RLAlgorithm):
             self._train_policy(*dataset)
             # print('Batch training time:', time.time() - st_time)
             i = i+1
-            # print('Batch number:',i)
+            print('Batch number:',i)
         if type(self._value_function)==GaussianMLPValueFunction:
             for dataset in self._vf_optimizer.get_minibatch(obs, returns):
                 self._train_value_function(*dataset)
