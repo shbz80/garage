@@ -114,12 +114,13 @@ class CEM(RLAlgorithm):
         last_return = None
 
         for _ in trainer.step_epochs():
+            trainer.step_path = []
             for _ in range(self._n_samples):
-                trainer.step_path = trainer.obtain_samples(trainer.step_itr)
+                step_path = trainer.obtain_samples(trainer.step_itr)
                 last_return = self.train_once(trainer.step_itr,
-                                              trainer.step_path)
+                                              step_path)
                 trainer.step_itr += 1
-
+                trainer.step_path.append(step_path[0])
         return last_return
 
     def train_once(self, itr, paths):
