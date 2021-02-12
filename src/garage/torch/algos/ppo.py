@@ -90,7 +90,7 @@ class PPO(VPG):
 
         self._lr_clip_range = lr_clip_range
 
-    def _compute_objective(self, advantages, obs, actions, rewards, param_keys):
+    def _compute_objective(self, advantages, obs, actions, rewards):
         r"""Compute objective value.
 
         Args:
@@ -110,9 +110,7 @@ class PPO(VPG):
         """
         # Compute constraint
         with torch.no_grad():
-            self._old_policy.set_param_keys(param_keys)
             old_ll = self._old_policy(obs)[0].log_prob(actions)
-        self.policy.set_param_keys(param_keys)
         new_ll = self.policy(obs)[0].log_prob(actions)
 
         likelihood_ratio = (new_ll - old_ll).exp()
