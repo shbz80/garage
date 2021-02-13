@@ -92,6 +92,7 @@ class DefaultWorker(Worker):
         self._eps_length = 0
         self._prev_obs, _ = self.env.reset()
         self.agent.reset()
+        return self._prev_obs               # todo only for energybased cem
 
     def step_episode(self):
         """Take a single time-step in the current episode.
